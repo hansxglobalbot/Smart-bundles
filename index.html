@@ -375,16 +375,22 @@ function renderBundleCards(net, pricesObj) {
     if (!container) return;
 
     var netLabel = net === 'tigo' ? 'Tigo' : 'Halotel';
-    var keys = Object.keys(pricesObj).map(Number).sort(function(a,b){ return a-b; });
+    // Hakikisha keys zote ni numbers (Firestore inaweza kutoa strings)
+    var normalized = {};
+    Object.keys(pricesObj).forEach(function(k) {
+        var num = parseInt(k);
+        if (!isNaN(num) && num > 0) normalized[num] = Number(pricesObj[k]);
+    });
+    var keys = Object.keys(normalized).map(Number).sort(function(a,b){ return a-b; });
 
     if (keys.length === 0) {
-        container.innerHTML = '<p style="color:#6B7280;padding:16px;text-align:center">Hakuna bando kwa sasa.</p>';
+        container.innerHTML = '<p style="color:#6B7280;padding:16px;text-align:center;width:100%">Hakuna bando kwa sasa.</p>';
         return;
     }
 
     var html = '';
     keys.forEach(function(gb) {
-        var price = pricesObj[gb];
+        var price = normalized[gb];
         var priceFormatted = Number(price).toLocaleString('en') + ' TZS';
         var orderName = gb + 'GB ' + netLabel;
         html += '<div class="card">';
@@ -395,38 +401,70 @@ function renderBundleCards(net, pricesObj) {
     });
     container.innerHTML = html;
 
-    // Re-apply popular badges after re-render
+    // Update slider range to match actual available GB range
+    var minGb = keys[0];
+    var maxGb = Math.max(keys[keys.length-1], 200);
+    if (net === 'tigo') {
+        var sl = document.getElementById('tigoSlider');
+        if (sl) { sl.min = minGb; sl.max = maxGb; sl.value = minGb; }
+        // Update slider labels
+        var labels = document.querySelectorAll('#tigoSlider + .slider-labels span');
+        if (labels.length >= 2) { labels[0].innerText = minGb + ' GB'; labels[1].innerText = maxGb + ' GB'; }
+        calcTigo(minGb);
+    } else {
+        var sl2 = document.getElementById('haloSlider');
+        if (sl2) { sl2.min = minGb; sl2.max = maxGb; sl2.value = minGb; }
+        var labels2 = document.querySelectorAll('#haloSlider + .slider-labels span');
+        if (labels2.length >= 2) { labels2[0].innerText = minGb + ' GB'; labels2[1].innerText = maxGb + ' GB'; }
+        calcHalo(minGb);
+    }
+
+    // Re-apply popular badges
     setTimeout(loadPopularBadges, 300);
 }
 
 function loadLiveConfig() {
     // Bei za Tigo
     db.collection('config').doc('tigo_prices').onSnapshot(function(doc) {
+        var newTigo = {};
         if (doc.exists) {
             var data = doc.data();
-            TIGO = {};
-            Object.keys(data).forEach(function(k){ TIGO[parseInt(k)] = data[k]; });
-            renderBundleCards('tigo', TIGO);
-            calcTigo(parseInt(document.getElementById('tigoGbVal').innerText)||1);
+            Object.keys(data).forEach(function(k){
+                var n = parseInt(k);
+                if (!isNaN(n) && n > 0) newTigo[n] = Number(data[k]);
+            });
         } else {
-            // Firestore haina data — tumia defaults na uziandike
-            renderBundleCards('tigo', TIGO);
+            // Firestore haina data — weka defaults
+            newTigo = TIGO;
             db.collection('config').doc('tigo_prices').set(TIGO).catch(function(){});
         }
+        TIGO = newTigo;
+        renderBundleCards('tigo', TIGO);
+    }, function(err) {
+        // Offline au permission error — tumia defaults
+        renderBundleCards('tigo', TIGO);
+        console.warn('Tigo prices error:', err.message);
     });
     // Bei za Halotel
     db.collection('config').doc('halo_prices').onSnapshot(function(doc) {
+        var newHalo = {};
         if (doc.exists) {
             var data = doc.data();
-            HALO = {};
-            Object.keys(data).forEach(function(k){ HALO[parseInt(k)] = data[k]; });
-            renderBundleCards('halo', HALO);
-            calcHalo(parseInt(document.getElementById('haloGbVal').innerText)||3);
+            Object.keys(data).forEach(function(k){
+                var n = parseInt(k);
+                if (!isNaN(n) && n > 0) newHalo[n] = Number(data[k]);
+            });
         } else {
-            // Firestore haina data — tumia defaults na uziandike
-            renderBundleCards('halo', HALO);
+            // Firestore haina data — weka defaults
+            newHalo = HALO;
             db.collection('config').doc('halo_prices').set(HALO).catch(function(){});
         }
+        HALO = newHalo;
+        renderBundleCards('halo', HALO);
+    }, function(err) {
+        // Offline au permission error — tumia defaults
+        renderBundleCards('halo', HALO);
+        console.warn('Halo prices error:', err.message);
     });
     // Flash Sale
     db.collection('config').doc('flash_sale').onSnapshot(function(doc) {
@@ -467,21 +505,32 @@ function loadLiveConfig() {
 
 function getPriceFromTable(table, gb) {
     gb = parseInt(gb);
-    if (table[gb]) return { price: table[gb], exact: true };
-    var keys = Object.keys(table).map(Number).sort(function(a,b){return a-b;});
+    // Normalize table keys to numbers
+    var normalized = {};
+    Object.keys(table).forEach(function(k) {
+        var n = parseInt(k);
+        if (!isNaN(n)) normalized[n] = Number(table[k]);
+    });
+    // Exact match
+    if (normalized[gb] !== undefined) return { price: normalized[gb], exact: true };
+    var keys = Object.keys(normalized).map(Number).sort(function(a,b){return a-b;});
+    if (keys.length === 0) return { price: 0, exact: false };
     var lo = keys.filter(function(k){return k<=gb;}).pop();
     var hi = keys.filter(function(k){return k>=gb;})[0];
-    if (!lo) return { price: table[hi], exact: false };
-    if (!hi) {
-        // beyond table — formula
+    // Below minimum
+    if (lo === undefined) return { price: normalized[hi], exact: false };
+    // Above maximum — extrapolate from last two points
+    if (hi === undefined) {
         var lastKey = keys[keys.length-1];
-        var ppg = lastKey === 20 ? (35000/20) : (37000/40);
-        ppg = ppg * 0.97 - (gb - lastKey) * 0.3;
-        if (ppg < 860) ppg = 860;
+        var lastPrice = normalized[lastKey];
+        var ppg = lastPrice / lastKey;
+        ppg = ppg * 0.96 - (gb - lastKey) * 0.3;
+        if (ppg < 800) ppg = 800;
         return { price: Math.round(gb * ppg / 500) * 500, exact: false };
     }
+    // Interpolate between lo and hi
     var ratio = (gb - lo) / (hi - lo);
-    return { price: Math.round((table[lo] + ratio*(table[hi]-table[lo])) / 100)*100, exact: false };
+    return { price: Math.round((normalized[lo] + ratio*(normalized[hi]-normalized[lo])) / 100)*100, exact: false };
 }
 
 function fmtTZS(n) { return n.toLocaleString('en') + ' TZS'; }
