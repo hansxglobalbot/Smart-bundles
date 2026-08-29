@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Kuwa Wakala wa Smart Bundles - nunua bando kwa bei ya jumla na uuze kwa faida yako.">
+<title>Kuwa Wakala Wetu — Smart Bundles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="images/logo.png" type="image/png">
+<style>
+    .agent-hero {
+        background: var(--blue);
+        color: #fff;
+        padding: 30px 20px 34px;
+        text-align: center;
+    }
+    .agent-hero h1 { margin: 8px 0 6px; font-size: 26px; }
+    .agent-hero p { margin: 0; opacity: 0.95; font-size: 15px; }
+
+    .benefits {
+        max-width: 600px;
+        margin: -18px auto 0;
+        padding: 0 16px;
+    }
+    .benefit-card {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 18px 20px;
+        margin-bottom: 12px;
+        text-align: left;
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+    }
+    .benefit-icon { font-size: 26px; line-height: 1; }
+    .benefit-card h4 { margin: 0 0 4px; font-size: 15px; }
+    .benefit-card p { margin: 0; font-size: 13.5px; color: var(--text-light); }
+
+    .agent-form-wrap {
+        max-width: 600px;
+        margin: 24px auto 40px;
+        padding: 0 16px;
+    }
+    .agent-form {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 24px 22px;
+        text-align: left;
+    }
+    .agent-form h3 { margin-top: 0; text-align: center; }
+    .agent-form label {
+        display: block;
+        font-size: 13.5px;
+        font-weight: 600;
+        margin: 14px 0 6px;
+    }
+    .agent-form input,
+    .agent-form textarea,
+    .agent-form select {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1.5px solid #E5E9F2;
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 14.5px;
+    }
+    .agent-form textarea { resize: vertical; min-height: 70px; }
+    .agent-submit-btn {
+        width: 100%;
+        margin-top: 20px;
+        padding: 14px;
+        border: none;
+        border-radius: 12px;
+        background: var(--halotel);
+        color: #fff;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+    }
+    .agent-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .agent-note {
+        font-size: 12.5px;
+        color: var(--text-light);
+        text-align: center;
+        margin-top: 12px;
+    }
+    .agent-success {
+        display: none;
+        text-align: center;
+        padding: 30px 20px;
+    }
+    .agent-success .icon { font-size: 48px; }
+    .agent-success h3 { margin: 10px 0 6px; }
+    .agent-success p { color: var(--text-light); font-size: 14.5px; }
+</style>
+</head>
+<body>
+
+<div class="agent-hero">
+    <img src="images/logo.png" style="width:64px;height:64px;border-radius:50%" alt="Smart Bundles">
+    <h1>Kuwa Wakala Wetu</h1>
+    <p>Nunua bando kwa bei ya jumla, uza kwa bei yako, weka faida yako</p>
+</div>
+
+<div class="benefits">
+    <div class="benefit-card">
+        <div class="benefit-icon">💰</div>
+        <div>
+            <h4>Bei ya Jumla</h4>
+            <p>Ukikubaliwa, unanunua bando kwa bei ya chini kuliko bei ya kawaida ya soko.</p>
+        </div>
+    </div>
+    <div class="benefit-card">
+        <div class="benefit-icon">📈</div>
+        <div>
+            <h4>Faida Yako Mwenyewe</h4>
+            <p>Unauza kwa wateja wako kwa bei unayoamua wewe — tofauti ni faida yako.</p>
+        </div>
+    </div>
+    <div class="benefit-card">
+        <div class="benefit-icon">🤝</div>
+        <div>
+            <h4>Msaada wa Kuuza</h4>
+            <p>Tunakupatia orodha za bei na matangazo ya kutumia WhatsApp Status/Instagram.</p>
+        </div>
+    </div>
+</div>
+
+<div class="agent-form-wrap">
+    <div class="agent-form" id="agentFormBox">
+        <h3>📋 Fomu ya Kuomba Uwakala</h3>
+        <form id="agentForm">
+            <label>Jina Kamili</label>
+            <input type="text" id="agentName" required placeholder="mfano: Juma Mrisho">
+
+            <label>Namba ya Simu (WhatsApp)</label>
+            <input type="tel" id="agentPhone" required placeholder="mfano: 0712345678" maxlength="13">
+
+            <label>Mkoa / Jiji</label>
+            <input type="text" id="agentRegion" required placeholder="mfano: Dar es Salaam">
+
+            <label>Unatarajia kuuza bando ngapi kwa mwezi? (hiari)</label>
+            <select id="agentVolume">
+                <option value="">-- Chagua --</option>
+                <option value="chini_10">Chini ya 10</option>
+                <option value="10_30">10 - 30</option>
+                <option value="30_100">30 - 100</option>
+                <option value="zaidi_100">Zaidi ya 100</option>
+            </select>
+
+            <label>Kwa nini unataka kuwa wakala? (hiari)</label>
+            <textarea id="agentReason" placeholder="Eleza kwa ufupi..."></textarea>
+
+            <button type="submit" class="agent-submit-btn" id="agentSubmitBtn">Tuma Ombi</button>
+            <p class="agent-note">Tutakupigia/kukutumia WhatsApp ndani ya masaa 24 baada ya kupitia ombi lako.</p>
+        </form>
+    </div>
+
+    <div class="agent-success" id="agentSuccessBox">
+        <div class="icon">✅</div>
+        <h3>Ombi Limepokelewa!</h3>
+        <p>Asante <span id="successName"></span>. Tutakuwasiliana ndani ya masaa 24 kupitia namba uliyotupa.</p>
+        <a href="index.html" class="pay-btn" style="display:inline-block;margin-top:14px">← Rudi Nyumbani</a>
+    </div>
+</div>
+
+<footer>
+    <p>Maswali? Wasiliana nasi WhatsApp:
+        <a href="https://wa.me/255612626715" target="_blank" rel="noopener">255612626715</a>
+    </p>
+</footer>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script type="module">
+    import { firebaseConfig } from './firebase-config.js';
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+
+    document.getElementById('agentForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        var name = document.getElementById('agentName').value.trim();
+        var phone = document.getElementById('agentPhone').value.trim();
+        var region = document.getElementById('agentRegion').value.trim();
+        var volume = document.getElementById('agentVolume').value;
+        var reason = document.getElementById('agentReason').value.trim();
+
+        if (!name || !phone || !region) return;
+
+        var btn = document.getElementById('agentSubmitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Inatuma...';
+
+        db.collection('agent_applications').add({
+            name: name,
+            phone: phone,
+            region: region,
+            volume: volume,
+            reason: reason,
+            status: 'pending',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(function () {
+            document.getElementById('successName').textContent = name;
+            document.getElementById('agentFormBox').style.display = 'none';
+            document.getElementById('agentSuccessBox').style.display = 'block';
+        }).catch(function (err) {
+            console.error(err);
+            btn.disabled = false;
+            btn.textContent = 'Tuma Ombi';
+            alert('Samahani, kuna tatizo. Jaribu tena au tutumie WhatsApp moja kwa moja.');
+        });
+    });
+</script>
+
+</body>
+</html>

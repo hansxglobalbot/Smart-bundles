@@ -37,21 +37,12 @@ h1, h2, h3, h4 {
 
 /* ============ HEADER ============ */
 header {
-    background: linear-gradient(120deg, var(--blue) 0%, var(--blue-light) 50%, var(--halotel) 100%);
-    background-size: 200% 200%;
-    animation: gradientShift 8s ease infinite;
+    background: var(--blue);
     color: white;
-    padding: 36px 20px 44px;
-    border-radius: 0 0 32px 32px;
+    padding: 28px 20px 32px;
     box-shadow: 0 6px 24px rgba(37,99,235,0.18);
     position: relative;
     overflow: hidden;
-}
-
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
 }
 
 .logo {
@@ -74,6 +65,79 @@ header p {
     margin: 0 0 14px;
     font-size: 15px;
     opacity: 0.95;
+}
+
+/* ============ PROMO SLIDER ============ */
+.promo-slider {
+    position: relative;
+    max-width: 640px;
+    margin: 0 auto 24px;
+    padding: 0 16px;
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.promo-track {
+    display: flex;
+    transition: transform 0.6s ease-in-out;
+}
+
+.promo-slide {
+    flex: 0 0 100%;
+    background: var(--card-bg);
+}
+
+.promo-slide img {
+    width: 100%;
+    height: auto;
+    display: block;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    background: #fff;
+}
+
+.promo-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.85);
+    color: var(--text);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.promo-nav.prev { left: 22px; }
+.promo-nav.next { right: 22px; }
+
+.promo-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.promo-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    cursor: pointer;
+}
+
+.promo-dot.active {
+    background: #fff;
+    width: 20px;
+    border-radius: 5px;
+}
+
+@media (min-width: 640px) {
+    .promo-slide img { aspect-ratio: 16 / 9; }
 }
 
 .pay-btn {

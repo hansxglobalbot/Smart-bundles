@@ -40,8 +40,65 @@
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px">
         <a href="payment.html" class="pay-btn">💳 Jinsi ya Kulipia</a>
         <a href="jinsi.html" class="pay-btn" style="background:#00C896">📖 Jinsi ya Kutumia</a>
+        <a href="wakala.html" class="pay-btn" style="background:#FF6B35">🤝 Kuwa Wakala</a>
     </div>
 </header>
+
+<!-- PROMO SLIDER -->
+<div class="promo-slider" id="promoSlider">
+    <div class="promo-track" id="promoTrack">
+        <div class="promo-slide"><img src="images/promo-halotel.jpg" alt="Bei za Halotel Data"></div>
+        <div class="promo-slide"><img src="images/promo-tigo-yas.jpg" alt="Bei za Tigo/Yas"></div>
+        <div class="promo-slide"><img src="images/promo-bando.jpg" alt="Pata Bando Lako"></div>
+        <div class="promo-slide"><img src="images/promo-switch.jpg" alt="Switch Smart Bundles"></div>
+    </div>
+    <button class="promo-nav prev" onclick="promoMove(-1)" aria-label="Iliyopita">‹</button>
+    <button class="promo-nav next" onclick="promoMove(1)" aria-label="Ifuatayo">›</button>
+    <div class="promo-dots" id="promoDots"></div>
+</div>
+
+<script>
+(function () {
+    var track = document.getElementById('promoTrack');
+    var dotsWrap = document.getElementById('promoDots');
+    var slides = track.children;
+    var total = slides.length;
+    var current = 0;
+    var timer;
+
+    for (var i = 0; i < total; i++) {
+        var dot = document.createElement('span');
+        dot.className = 'promo-dot' + (i === 0 ? ' active' : '');
+        dot.onclick = (function (idx) { return function () { goTo(idx); }; })(i);
+        dotsWrap.appendChild(dot);
+    }
+
+    function render() {
+        track.style.transform = 'translateX(-' + (current * 100) + '%)';
+        var dots = dotsWrap.children;
+        for (var i = 0; i < dots.length; i++) {
+            dots[i].classList.toggle('active', i === current);
+        }
+    }
+
+    function goTo(idx) {
+        current = (idx + total) % total;
+        render();
+        resetTimer();
+    }
+
+    window.promoMove = function (dir) { goTo(current + dir); };
+
+    function resetTimer() {
+        clearInterval(timer);
+        timer = setInterval(function () { goTo(current + 1); }, 4500);
+    }
+
+    render();
+    resetTimer();
+})();
+</script>
+</script>
 
 <!-- ORDER MODAL -->
 <div id="orderModal" class="modal-overlay" onclick="if(event.target.id==='orderModal')closeModal()">

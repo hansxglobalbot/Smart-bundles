@@ -200,10 +200,11 @@
     <div class="login-box">
         <div class="login-logo">🛡️</div>
         <h2>Smart Bundles Admin</h2>
-        <p>Ingiza password yako ya admin</p>
-        <input type="password" id="pwInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+        <p>Ingia na akaunti yako ya admin</p>
+        <input type="email" id="emailInput" placeholder="Email" autocomplete="username" style="margin-bottom:10px">
+        <input type="password" id="pwInput" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
         <button class="login-btn" onclick="doLogin()">Ingia Dashboard</button>
-        <div class="login-error" id="loginError">❌ Password si sahihi. Jaribu tena.</div>
+        <div class="login-error" id="loginError">❌ Email au password si sahihi. Jaribu tena.</div>
     </div>
 </div>
 
@@ -229,6 +230,7 @@
         <button class="tab-btn" onclick="switchTab('chatbot')">🤖 Chatbot FAQ</button>
         <button class="tab-btn" onclick="switchTab('reviews')">💬 Maoni</button>
         <button class="tab-btn" onclick="switchTab('referrals')">🎁 Referrals</button>
+        <button class="tab-btn" onclick="switchTab('agents')">🤝 Wakala</button>
         <button class="tab-btn" onclick="switchTab('analytics')">📈 Analytics</button>
     </div>
 
@@ -496,6 +498,27 @@
         </div>
     </div>
 
+    <!-- TAB: AGENTS (WAKALA) -->
+    <div class="tab-content" id="tab-agents">
+        <div class="stats-row">
+            <div class="stat-card"><div class="stat-num" style="color:var(--orange)" id="statAgentPending">—</div><div class="stat-label">Maombi Mapya</div></div>
+            <div class="stat-card"><div class="stat-num" style="color:var(--green)" id="statAgentApproved">—</div><div class="stat-label">Wakala Waliokubaliwa</div></div>
+            <div class="stat-card"><div class="stat-num" style="color:var(--red)" id="statAgentRejected">—</div><div class="stat-label">Yaliyokataliwa</div></div>
+        </div>
+
+        <div class="alert" id="agentAlert"></div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <h3>🤝 Maombi ya Uwakala</h3>
+                <button class="btn btn-sm" style="background:#F1F5F9" onclick="loadAgents()">🔄 Onyesha upya</button>
+            </div>
+            <div class="panel-body" id="agentsList">
+                <div class="loading-spinner">⏳ Inapakia...</div>
+            </div>
+        </div>
+    </div>
+
     <!-- TAB: ANALYTICS -->
     <div class="tab-content" id="tab-analytics">
         <div class="stats-row">
@@ -547,11 +570,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <script>
-// ===== CONFIG =====
-var ADMIN_PASSWORD = "smart2025"; // Badilisha hii!
-
 // ===== FIREBASE =====
 firebase.initializeApp({
     apiKey: "AIzaSyCVp3VUQVJzVVW_vFgeEcSk0PD57tsP1dg",
@@ -562,6 +583,7 @@ firebase.initializeApp({
     appId: "1:146024000699:web:4fc1877970d09d3867cd9e"
 });
 var db = firebase.firestore();
+var auth = firebase.auth();
 
 // ===== DEFAULTS =====
 var DEFAULT_TIGO = {1:1800,2:3800,3:5500,4:7200,5:9000,6:10700,7:12500,8:14000,9:15800,10:18000,15:26000,20:35000};
@@ -605,18 +627,23 @@ var DEFAULT_FAQ = {
 
 var state = { tigo:{}, halo:{}, sale:{}, faq:{} };
 
-// ===== LOGIN =====
+// ===== LOGIN (Firebase Authentication) =====
 function doLogin() {
+    var email = document.getElementById('emailInput').value.trim();
     var pw = document.getElementById('pwInput').value;
-    if (pw === ADMIN_PASSWORD) {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
-        loadAll();
-    } else {
-        var err = document.getElementById('loginError');
-        err.style.display = 'block';
-        setTimeout(function(){ err.style.display = 'none'; }, 3000);
-    }
+    var btn = document.querySelector('.login-btn');
+    btn.disabled = true;
+    btn.textContent = 'Inaingia...';
+
+    auth.signInWithEmailAndPassword(email, pw).catch(function (err) {
+        var err2 = document.getElementById('loginError');
+        err2.style.display = 'block';
+        setTimeout(function(){ err2.style.display = 'none'; }, 3500);
+        console.error(err);
+    }).finally(function () {
+        btn.disabled = false;
+        btn.textContent = 'Ingia Dashboard';
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -628,14 +655,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Huamua kuonyesha dashboard au login screen kulingana na hali halisi ya
+// Firebase Auth — siyo variable ya JS inayoweza kuchezewa.
+auth.onAuthStateChanged(function (user) {
+    if (user) {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        loadAll();
+    } else {
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('loginScreen').style.display = 'flex';
+    }
+});
+
 function doLogout() {
-    document.getElementById('dashboard').style.display = 'none';
-    document.getElementById('loginScreen').style.display = 'flex';
+    auth.signOut();
     document.getElementById('pwInput').value = '';
 }
 
 // ===== TABS =====
-var TAB_NAMES = ['overview','tigo','halotel','sale','chatbot','reviews','referrals','analytics'];
+var TAB_NAMES = ['overview','tigo','halotel','sale','chatbot','reviews','referrals','agents','analytics'];
 
 function switchTab(name) {
     var idx = TAB_NAMES.indexOf(name);
@@ -645,6 +684,7 @@ function switchTab(name) {
     var el = document.getElementById('tab-' + name);
     if (el) el.classList.add('active');
     if (name === 'referrals') loadReferrals();
+    if (name === 'agents') loadAgents();
     if (name === 'analytics') loadAnalytics();
 }
 
@@ -654,6 +694,7 @@ function loadAll() {
     loadSaleConfig();
     loadFaq();
     loadReviews();
+    loadAgents();
 }
 
 function showAlert(id, msg, type) {
@@ -693,6 +734,14 @@ document.addEventListener('click', function(e) {
         approveClaim(t.getAttribute('data-claimid'));
     } else if (action === 'delete-ref') {
         deleteRef(t.getAttribute('data-docid'));
+    } else if (action === 'approve-agent') {
+        setAgentStatus(t.getAttribute('data-docid'), 'approved');
+    } else if (action === 'reject-agent') {
+        setAgentStatus(t.getAttribute('data-docid'), 'rejected');
+    } else if (action === 'reset-agent') {
+        setAgentStatus(t.getAttribute('data-docid'), 'pending');
+    } else if (action === 'delete-agent') {
+        deleteAgent(t.getAttribute('data-docid'));
     } else if (action === 'sale-tigo-card') {
         var gb = t.getAttribute('data-gb');
         var price = t.getAttribute('data-price');
@@ -1193,6 +1242,98 @@ function deleteRef(docId) {
         showAlert('refAlert', 'Referral imefutwa!', 'success');
         loadReferrals();
     }).catch(function(e){ showAlert('refAlert', e.message, 'error'); });
+}
+
+// ===== AGENTS (WAKALA) =====
+var VOLUME_LABELS = {
+    chini_10: 'Chini ya 10/mwezi',
+    '10_30': '10 - 30/mwezi',
+    '30_100': '30 - 100/mwezi',
+    zaidi_100: 'Zaidi ya 100/mwezi'
+};
+
+function loadAgents() {
+    var list = document.getElementById('agentsList');
+    list.innerHTML = '<div class="loading-spinner">⏳ Inapakia...</div>';
+
+    db.collection('agent_applications').orderBy('createdAt', 'desc').get().then(function(snap) {
+        var pending = 0, approved = 0, rejected = 0;
+        var html = '';
+
+        if (snap.empty) {
+            list.innerHTML = '<p style="color:var(--light);text-align:center;padding:20px">Hakuna maombi ya uwakala bado</p>';
+            document.getElementById('statAgentPending').innerText = 0;
+            document.getElementById('statAgentApproved').innerText = 0;
+            document.getElementById('statAgentRejected').innerText = 0;
+            return;
+        }
+
+        snap.forEach(function(doc) {
+            var d = doc.data();
+            var status = d.status || 'pending';
+            if (status === 'pending') pending++;
+            else if (status === 'approved') approved++;
+            else if (status === 'rejected') rejected++;
+
+            var date = d.createdAt ? new Date(d.createdAt.toDate()).toLocaleDateString('sw') : '-';
+            var statusColor = status === 'approved' ? 'var(--green)' : (status === 'rejected' ? 'var(--red)' : 'var(--orange)');
+            var statusLabel = status === 'approved' ? '✅ Amekubaliwa' : (status === 'rejected' ? '❌ Amekataliwa' : '⏳ Anasubiri');
+            var waLink = 'https://wa.me/' + d.phone.replace(/[^0-9]/g, '').replace(/^0/, '255') +
+                '?text=' + encodeURIComponent('Habari ' + d.name + ', kuhusu ombi lako la uwakala Smart Bundles...');
+
+            html += '<div class="review-item">';
+            html += '<div class="review-item-body">';
+            html += '<div class="review-meta">';
+            html += '<span class="review-name"><strong>' + d.name + '</strong> — ' + d.region + '</span>';
+            html += '<span style="background:' + statusColor + ';color:white;font-size:11px;padding:2px 8px;border-radius:50px">' + statusLabel + '</span>';
+            html += '</div>';
+            html += '<div class="review-msg">📱 ' + d.phone +
+                (d.volume ? ' &nbsp;|&nbsp; 📦 ' + (VOLUME_LABELS[d.volume] || d.volume) : '') +
+                ' &nbsp;|&nbsp; 🗓️ ' + date + '</div>';
+            if (d.reason) {
+                html += '<div class="review-msg" style="font-style:italic">"' + d.reason + '"</div>';
+            }
+            html += '</div>';
+            html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+            html += '<a class="btn btn-sm" style="background:#25D366;color:#fff" href="' + waLink + '" target="_blank">💬 WhatsApp</a>';
+            if (status !== 'approved') {
+                html += '<button class="btn btn-green btn-sm" data-action="approve-agent" data-docid="' + doc.id + '">Kubali</button>';
+            }
+            if (status !== 'rejected') {
+                html += '<button class="btn btn-red btn-sm" data-action="reject-agent" data-docid="' + doc.id + '">Kataa</button>';
+            }
+            if (status !== 'pending') {
+                html += '<button class="btn btn-sm" style="background:#F1F5F9" data-action="reset-agent" data-docid="' + doc.id + '">Rudisha Pending</button>';
+            }
+            html += '<button class="btn btn-red btn-sm" data-action="delete-agent" data-docid="' + doc.id + '">Futa</button>';
+            html += '</div></div>';
+        });
+
+        list.innerHTML = html;
+        document.getElementById('statAgentPending').innerText = pending;
+        document.getElementById('statAgentApproved').innerText = approved;
+        document.getElementById('statAgentRejected').innerText = rejected;
+    }).catch(function(e){
+        list.innerHTML = '<p style="color:var(--red)">' + e.message + '</p>';
+    });
+}
+
+function setAgentStatus(docId, status) {
+    db.collection('agent_applications').doc(docId).update({
+        status: status,
+        statusUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function(){
+        showAlert('agentAlert', 'Hali imesasishwa!', 'success');
+        loadAgents();
+    }).catch(function(e){ showAlert('agentAlert', e.message, 'error'); });
+}
+
+function deleteAgent(docId) {
+    if (!confirm('Futa ombi hili la uwakala?')) return;
+    db.collection('agent_applications').doc(docId).delete().then(function(){
+        showAlert('agentAlert', 'Ombi limefutwa!', 'success');
+        loadAgents();
+    }).catch(function(e){ showAlert('agentAlert', e.message, 'error'); });
 }
 
 // ===== ANALYTICS (Click Tracking) =====
