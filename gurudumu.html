@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Gurudumu la Bahati - Smart Bundles. Zawadi kwa wateja waliokwishanunua.">
+<title>Gurudumu la Bahati — Smart Bundles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="images/logo.png" type="image/png">
+<style>
+    body { background: #F4F6FB; }
+    .wheel-hero {
+        background: var(--blue);
+        color: #fff;
+        padding: 26px 20px 30px;
+        text-align: center;
+    }
+    .wheel-hero h1 { margin: 8px 0 4px; font-size: 24px; }
+    .wheel-hero p { margin: 0; opacity: 0.95; font-size: 14px; }
+
+    .wheel-wrap {
+        max-width: 420px;
+        margin: 0 auto;
+        padding: 26px 16px 40px;
+        text-align: center;
+    }
+
+    /* ---- Entry gate (code + phone) ---- */
+    .gate-card {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 24px 20px;
+        margin-top: -16px;
+    }
+    .gate-card input {
+        width: 100%;
+        padding: 13px 14px;
+        border: 1.5px solid #E5E9F2;
+        border-radius: 10px;
+        font-size: 15px;
+        margin-top: 8px;
+        margin-bottom: 14px;
+        text-align: center;
+        letter-spacing: 1px;
+    }
+    .gate-btn {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 12px;
+        background: var(--halotel);
+        color: #fff;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+    }
+    .gate-btn:disabled { opacity: 0.6; }
+    .gate-msg {
+        margin-top: 12px;
+        font-size: 13.5px;
+        color: #DC2626;
+        display: none;
+    }
+
+    /* ---- Wheel ---- */
+    #wheelStage { display: none; }
+    .wheel-box {
+        position: relative;
+        width: 300px;
+        height: 300px;
+        margin: 10px auto 22px;
+    }
+    .wheel-pointer {
+        position: absolute;
+        top: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0; height: 0;
+        border-left: 14px solid transparent;
+        border-right: 14px solid transparent;
+        border-top: 24px solid #1A1F36;
+        z-index: 5;
+        filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+    }
+    #wheel {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        position: relative;
+        border: 6px solid #fff;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        transition: transform 4.5s cubic-bezier(0.17, 0.89, 0.32, 1.15);
+        background: conic-gradient(
+            #2563EB 0deg 60deg,
+            #00C896 60deg 120deg,
+            #FF6B35 120deg 180deg,
+            #FFD166 180deg 240deg,
+            #3B82F6 240deg 300deg,
+            #00A67D 300deg 360deg
+        );
+    }
+    .wheel-label {
+        position: absolute;
+        width: 130px;
+        left: 50%;
+        top: 50%;
+        font-size: 11.5px;
+        font-weight: 700;
+        color: #fff;
+        text-align: center;
+        transform-origin: 0 0;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+        line-height: 1.2;
+    }
+    .wheel-center {
+        position: absolute;
+        top: 50%; left: 50%;
+        width: 54px; height: 54px;
+        transform: translate(-50%,-50%);
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        z-index: 4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+    .spin-btn {
+        padding: 14px 34px;
+        border: none;
+        border-radius: 50px;
+        background: var(--tigo);
+        color: #fff;
+        font-weight: 800;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 6px 18px rgba(255,107,53,0.35);
+    }
+    .spin-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    /* ---- Result ---- */
+    #resultBox {
+        display: none;
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 26px 20px;
+        margin-top: 16px;
+    }
+    #resultBox .icon { font-size: 46px; }
+    #resultBox h3 { margin: 8px 0 6px; }
+    #resultBox p { color: var(--text-light); font-size: 14px; }
+
+    .gate-error, .gate-note {
+        font-size: 13px;
+        color: var(--text-light);
+        margin-top: 14px;
+        text-align: center;
+    }
+    .closed-box {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 30px 20px;
+        margin-top: -16px;
+        text-align: center;
+        display: none;
+    }
+    .closed-box .icon { font-size: 44px; }
+</style>
+</head>
+<body>
+
+<div class="wheel-hero">
+    <h1>🎡 Gurudumu la Bahati</h1>
+    <p>Zawadi maalum kwa wateja wetu waliokwishanunua</p>
+</div>
+
+<div class="wheel-wrap">
+
+    <!-- GATE: enter phone + code -->
+    <div class="gate-card" id="gateCard">
+        <h3 style="margin-top:0">Ingiza Namba na Code Yako</h3>
+        <p style="font-size:13.5px;color:var(--text-light);margin-top:-6px">Ulipewa code hii baada ya ununuzi wako kupitia WhatsApp</p>
+        <input type="tel" id="gatePhone" placeholder="Namba ya simu, mfano 0712345678" maxlength="13">
+        <input type="text" id="gateCode" placeholder="SPIN CODE" style="text-transform:uppercase">
+        <button class="gate-btn" id="gateBtn" onclick="checkCode()">Fungua Gurudumu 🎉</button>
+        <div class="gate-msg" id="gateMsg"></div>
+    </div>
+
+    <!-- CLOSED (feature off / pool empty) -->
+    <div class="closed-box" id="closedBox">
+        <div class="icon">😴</div>
+        <h3>Gurudumu Halipo Sasa</h3>
+        <p style="color:var(--text-light)">Gurudumu la bahati halifanyi kazi kwa sasa. Fuatilia WhatsApp yetu kujua litakapofunguliwa tena!</p>
+    </div>
+
+    <!-- WHEEL -->
+    <div id="wheelStage">
+        <div class="wheel-box">
+            <div class="wheel-pointer"></div>
+            <div id="wheel">
+                <div class="wheel-label" style="transform:rotate(30deg) translate(20px,-84px)">🎁 1GB BURE</div>
+                <div class="wheel-label" style="transform:rotate(90deg) translate(20px,-84px)">🔄 Bahati Nyingine</div>
+                <div class="wheel-label" style="transform:rotate(150deg) translate(20px,-84px)">💙 Punguzo 5%</div>
+                <div class="wheel-label" style="transform:rotate(210deg) translate(20px,-84px)">🎁 1GB BURE</div>
+                <div class="wheel-label" style="transform:rotate(270deg) translate(20px,-84px)">🔁 Jaribu Wiki Ijayo</div>
+                <div class="wheel-label" style="transform:rotate(330deg) translate(20px,-84px)">📢 Referral Bonus</div>
+                <div class="wheel-center">🎯</div>
+            </div>
+        </div>
+        <button class="spin-btn" id="spinBtn" onclick="doSpin()">ZUNGUSHA SASA</button>
+        <p class="gate-note">Unaruhusiwa spin MOJA tu kwa code hii</p>
+    </div>
+
+    <!-- RESULT -->
+    <div id="resultBox">
+        <div class="icon" id="resultIcon">🎉</div>
+        <h3 id="resultTitle">Hongera!</h3>
+        <p id="resultText"></p>
+        <a href="https://wa.me/255612626715" target="_blank" class="pay-btn" style="display:inline-block;margin-top:10px;background:var(--halotel)">💬 Dai Zawadi WhatsApp</a>
+    </div>
+
+</div>
+
+<footer>
+    <p>Maswali? WhatsApp: <a href="https://wa.me/255612626715" target="_blank">255612626715</a></p>
+</footer>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script type="module">
+import { firebaseConfig } from './firebase-config.js';
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+// Segment order must match the visual wheel above (0-5, clockwise from top)
+var SEGMENTS = [
+    { key: 'free_gb',   label: '🎁 Umeshinda 1GB BURE!',          isGb: true },
+    { key: 'try_again', label: '🔄 Bahati Nyingine Wakati Mwingine', isGb: false },
+    { key: 'discount5', label: '💙 Umepata Punguzo 5% Agizo Lijalo', isGb: false },
+    { key: 'free_gb2',  label: '🎁 Umeshinda 1GB BURE!',          isGb: true },
+    { key: 'next_week', label: '🔁 Jaribu Tena Wiki Ijayo',        isGb: false },
+    { key: 'referral',  label: '📢 Umepata Referral Bonus',       isGb: false }
+];
+
+var currentCodeDoc = null;
+var currentCodeId = null;
+
+window.checkCode = function () {
+    var phone = document.getElementById('gatePhone').value.trim();
+    var code = document.getElementById('gateCode').value.trim().toUpperCase();
+    var msg = document.getElementById('gateMsg');
+    msg.style.display = 'none';
+
+    if (!phone || !code) {
+        msg.textContent = 'Weka namba ya simu na code kamili.';
+        msg.style.display = 'block';
+        return;
+    }
+
+    var btn = document.getElementById('gateBtn');
+    btn.disabled = true;
+    btn.textContent = 'Inakagua...';
+
+    db.collection('wheel_config').doc('main').get().then(function (cfgSnap) {
+        var cfg = cfgSnap.exists ? cfgSnap.data() : { active: false };
+        if (!cfg.active) {
+            document.getElementById('gateCard').style.display = 'none';
+            document.getElementById('closedBox').style.display = 'block';
+            return null;
+        }
+
+        return db.collection('spin_codes').doc(code).get().then(function (codeSnap) {
+            if (!codeSnap.exists) {
+                throw new Error('Code hii haipo. Hakikisha umeandika sahihi.');
+            }
+            var data = codeSnap.data();
+            if (data.used) {
+                throw new Error('Code hii tayari imeshatumika.');
+            }
+            if (data.phone.replace(/\D/g,'').slice(-9) !== phone.replace(/\D/g,'').slice(-9)) {
+                throw new Error('Namba ya simu haiendani na code hii.');
+            }
+            currentCodeDoc = data;
+            currentCodeId = code;
+            document.getElementById('gateCard').style.display = 'none';
+            document.getElementById('wheelStage').style.display = 'block';
+        });
+    }).catch(function (err) {
+        msg.textContent = err.message || 'Hitilafu, jaribu tena.';
+        msg.style.display = 'block';
+    }).finally(function () {
+        btn.disabled = false;
+        btn.textContent = 'Fungua Gurudumu 🎉';
+    });
+};
+
+window.doSpin = function () {
+    var spinBtn = document.getElementById('spinBtn');
+    spinBtn.disabled = true;
+    spinBtn.textContent = 'Inazunguka...';
+
+    var wheelConfigRef = db.collection('wheel_config').doc('main');
+    var codeRef = db.collection('spin_codes').doc(currentCodeId);
+
+    db.runTransaction(function (tx) {
+        return tx.get(codeRef).then(function (codeSnap) {
+            if (!codeSnap.exists || codeSnap.data().used) {
+                throw new Error('Code hii tayari imetumika.');
+            }
+            return tx.get(wheelConfigRef).then(function (cfgSnap) {
+                var cfg = cfgSnap.exists ? cfgSnap.data() : { active: false, freeGbRemaining: 0, freeGbSize: '1GB' };
+
+                // Uniform random pick among the 6 visual segments — fair & transparent.
+                var idx = Math.floor(Math.random() * SEGMENTS.length);
+                var seg = SEGMENTS[idx];
+
+                // Hard safety check: even if the wheel lands on a GB segment,
+                // only actually award it if real stock remains. Otherwise
+                // silently redirect to a zero-cost consolation segment.
+                if (seg.isGb) {
+                    if (!cfg.active || (cfg.freeGbRemaining || 0) <= 0) {
+                        idx = 1; // 'try_again' — always available, zero cost
+                        seg = SEGMENTS[idx];
+                    } else {
+                        tx.update(wheelConfigRef, {
+                            freeGbRemaining: cfg.freeGbRemaining - 1
+                        });
+                    }
+                }
+
+                tx.update(codeRef, {
+                    used: true,
+                    usedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    result: seg.key
+                });
+
+                return { idx: idx, seg: seg };
+            });
+        });
+    }).then(function (outcome) {
+        spinToSegment(outcome.idx, outcome.seg);
+    }).catch(function (err) {
+        alert(err.message || 'Hitilafu, jaribu tena.');
+        spinBtn.disabled = false;
+        spinBtn.textContent = 'ZUNGUSHA SASA';
+    });
+};
+
+function spinToSegment(idx, seg) {
+    var wheel = document.getElementById('wheel');
+    var segAngle = 360 / SEGMENTS.length;
+    // Land the pointer (fixed at top / 0deg) on the middle of the chosen segment.
+    var targetAngle = 360 * 5 - (idx * segAngle + segAngle / 2);
+    wheel.style.transform = 'rotate(' + targetAngle + 'deg)';
+
+    setTimeout(function () {
+        showResult(seg);
+    }, 4700);
+}
+
+function showResult(seg) {
+    document.getElementById('wheelStage').style.display = 'none';
+    var box = document.getElementById('resultBox');
+    var icon = document.getElementById('resultIcon');
+    var title = document.getElementById('resultTitle');
+    var text = document.getElementById('resultText');
+
+    if (seg.isGb) {
+        icon.textContent = '🎁';
+        title.textContent = 'Hongera Sana!';
+        text.textContent = 'Umeshinda GB bure! Bonyeza kitufe hapa chini utume ujumbe WhatsApp kudai zawadi yako.';
+    } else if (seg.key === 'discount5') {
+        icon.textContent = '💙';
+        title.textContent = 'Umepata Punguzo!';
+        text.textContent = 'Umepata punguzo la 5% kwenye agizo lako lijalo. Tutumie WhatsApp wakati wa kuagiza tena.';
+    } else if (seg.key === 'referral') {
+        icon.textContent = '📢';
+        title.textContent = 'Referral Bonus!';
+        text.textContent = 'Umepata referral bonus ya ziada. Wasiliana nasi WhatsApp kupata maelezo zaidi.';
+    } else {
+        icon.textContent = '🔄';
+        title.textContent = 'Karibu Sana!';
+        text.textContent = 'Bahati haikuwa upande wako mara hii — lakini asante kwa kuwa mteja wetu! Endelea kufuatilia ofa zetu.';
+    }
+    box.style.display = 'block';
+}
+</script>
+
+</body>
+</html>

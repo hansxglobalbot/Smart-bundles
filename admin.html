@@ -191,6 +191,13 @@
             .stat-card { padding: 12px; }
             .stat-card .stat-num { font-size: 22px; }
         }
+    /* Toggle switch */
+    .switch { position: relative; display: inline-block; width: 46px; height: 26px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch .slider { position: absolute; cursor: pointer; inset: 0; background: #CBD5E1; border-radius: 26px; transition: 0.25s; }
+    .switch .slider:before { content: ""; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.25s; }
+    .switch input:checked + .slider { background: var(--green, #10B981); }
+    .switch input:checked + .slider:before { transform: translateX(20px); }
     </style>
 </head>
 <body>
@@ -231,6 +238,7 @@
         <button class="tab-btn" onclick="switchTab('reviews')">💬 Maoni</button>
         <button class="tab-btn" onclick="switchTab('referrals')">🎁 Referrals</button>
         <button class="tab-btn" onclick="switchTab('agents')">🤝 Wakala</button>
+        <button class="tab-btn" onclick="switchTab('wheel')">🎡 Gurudumu</button>
         <button class="tab-btn" onclick="switchTab('analytics')">📈 Analytics</button>
     </div>
 
@@ -519,6 +527,65 @@
         </div>
     </div>
 
+    <!-- TAB: WHEEL (GURUDUMU) -->
+    <div class="tab-content" id="tab-wheel">
+        <div class="panel">
+            <div class="panel-header">
+                <h3>🎡 Udhibiti wa Gurudumu</h3>
+            </div>
+            <div class="panel-body">
+                <div class="alert" id="wheelAlert"></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #F1F5F9">
+                    <div>
+                        <strong>Hali ya Gurudumu</strong>
+                        <p style="margin:2px 0 0;font-size:13px;color:var(--light)">Likiwa "Limezimwa," wateja wataona ujumbe "Halipo Sasa" hata kama wana code sahihi.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="wheelActiveToggle" onchange="saveWheelConfig()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div style="margin-top:16px">
+                    <label style="font-weight:600;font-size:13.5px;display:block;margin-bottom:6px">GB Bure Zilizobaki Leo</label>
+                    <div style="display:flex;gap:8px">
+                        <input type="number" id="wheelGbRemaining" min="0" style="flex:1;padding:10px;border:1.5px solid #E5E9F2;border-radius:8px">
+                        <input type="text" id="wheelGbSize" placeholder="mfano 1GB" style="width:100px;padding:10px;border:1.5px solid #E5E9F2;border-radius:8px">
+                        <button class="btn btn-green btn-sm" onclick="saveWheelConfig()">Hifadhi</button>
+                    </div>
+                    <p style="margin:6px 0 0;font-size:12.5px;color:var(--light)">Idadi hii inapungua moja kwa moja kila mara mteja anaposhinda GB bure. Weka namba mpya wakati wowote unapotaka kufungua ofa mpya.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <h3>🎟️ Toa Spin Code kwa Mteja</h3>
+            </div>
+            <div class="panel-body">
+                <p style="font-size:13px;color:var(--light);margin-top:0">Tumia hii baada ya kuthibitisha malipo ya mteja — mpe code hii pamoja na ujumbe wako wa kawaida wa "bando limetumwa."</p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <input type="tel" id="newCodePhone" placeholder="Namba ya simu ya mteja" style="flex:1;min-width:180px;padding:10px;border:1.5px solid #E5E9F2;border-radius:8px">
+                    <button class="btn btn-green btn-sm" onclick="generateSpinCode()">Tengeneza Code</button>
+                </div>
+                <div id="newCodeResult" style="display:none;margin-top:14px;padding:14px;background:#F0FDF9;border-radius:10px">
+                    <div style="font-size:20px;font-weight:800;letter-spacing:2px;text-align:center" id="newCodeText"></div>
+                    <a class="btn btn-sm" style="background:#25D366;color:#fff;display:block;text-align:center;margin-top:10px" id="newCodeWaLink" href="#" target="_blank">💬 Tuma kwa WhatsApp</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <h3>📜 Historia ya Codes</h3>
+                <button class="btn btn-sm" style="background:#F1F5F9" onclick="loadSpinCodes()">🔄 Onyesha upya</button>
+            </div>
+            <div class="panel-body" id="spinCodesList">
+                <div class="loading-spinner">⏳ Inapakia...</div>
+            </div>
+        </div>
+    </div>
+
     <!-- TAB: ANALYTICS -->
     <div class="tab-content" id="tab-analytics">
         <div class="stats-row">
@@ -674,7 +741,7 @@ function doLogout() {
 }
 
 // ===== TABS =====
-var TAB_NAMES = ['overview','tigo','halotel','sale','chatbot','reviews','referrals','agents','analytics'];
+var TAB_NAMES = ['overview','tigo','halotel','sale','chatbot','reviews','referrals','agents','wheel','analytics'];
 
 function switchTab(name) {
     var idx = TAB_NAMES.indexOf(name);
@@ -685,6 +752,7 @@ function switchTab(name) {
     if (el) el.classList.add('active');
     if (name === 'referrals') loadReferrals();
     if (name === 'agents') loadAgents();
+    if (name === 'wheel') { loadWheelConfig(); loadSpinCodes(); }
     if (name === 'analytics') loadAnalytics();
 }
 
@@ -695,6 +763,8 @@ function loadAll() {
     loadFaq();
     loadReviews();
     loadAgents();
+    loadWheelConfig();
+    loadSpinCodes();
 }
 
 function showAlert(id, msg, type) {
@@ -1334,6 +1404,99 @@ function deleteAgent(docId) {
         showAlert('agentAlert', 'Ombi limefutwa!', 'success');
         loadAgents();
     }).catch(function(e){ showAlert('agentAlert', e.message, 'error'); });
+}
+
+// ===== WHEEL (GURUDUMU LA BAHATI) =====
+function loadWheelConfig() {
+    db.collection('wheel_config').doc('main').get().then(function (snap) {
+        var cfg = snap.exists ? snap.data() : { active: false, freeGbRemaining: 0, freeGbSize: '1GB' };
+        document.getElementById('wheelActiveToggle').checked = !!cfg.active;
+        document.getElementById('wheelGbRemaining').value = cfg.freeGbRemaining || 0;
+        document.getElementById('wheelGbSize').value = cfg.freeGbSize || '1GB';
+    }).catch(function (e) {
+        showAlert('wheelAlert', e.message, 'error');
+    });
+}
+
+function saveWheelConfig() {
+    var active = document.getElementById('wheelActiveToggle').checked;
+    var remaining = parseInt(document.getElementById('wheelGbRemaining').value, 10) || 0;
+    var size = document.getElementById('wheelGbSize').value.trim() || '1GB';
+
+    db.collection('wheel_config').doc('main').set({
+        active: active,
+        freeGbRemaining: remaining,
+        freeGbSize: size,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true }).then(function () {
+        showAlert('wheelAlert', 'Mipangilio ya gurudumu imehifadhiwa!', 'success');
+    }).catch(function (e) {
+        showAlert('wheelAlert', e.message, 'error');
+    });
+}
+
+function generateSpinCode() {
+    var phone = document.getElementById('newCodePhone').value.trim();
+    if (!phone) { showAlert('wheelAlert', 'Weka namba ya simu ya mteja kwanza.', 'error'); return; }
+
+    var code = 'SB' + Math.random().toString(36).substring(2, 7).toUpperCase();
+
+    db.collection('spin_codes').doc(code).set({
+        code: code,
+        phone: phone,
+        used: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function () {
+        document.getElementById('newCodeResult').style.display = 'block';
+        document.getElementById('newCodeText').textContent = code;
+        var msg = 'Asante kwa ununuzi wako! 🎉 Kama zawadi, una nafasi ya kuzungusha Gurudumu la Bahati letu.\n\n' +
+            'Fungua: [https://rebrand.ly/Smart-bundles]/gurudumu.html\n' +
+            'Namba: ' + phone + '\n' +
+            'Code: ' + code + '\n\nBahati njema! 🎡';
+        var waPhone = phone.replace(/[^0-9]/g, '').replace(/^0/, '255');
+        document.getElementById('newCodeWaLink').href = 'https://wa.me/' + waPhone + '?text=' + encodeURIComponent(msg);
+        document.getElementById('newCodePhone').value = '';
+        loadSpinCodes();
+    }).catch(function (e) {
+        showAlert('wheelAlert', e.message, 'error');
+    });
+}
+
+function loadSpinCodes() {
+    var list = document.getElementById('spinCodesList');
+    if (!list) return;
+    list.innerHTML = '<div class="loading-spinner">⏳ Inapakia...</div>';
+
+    db.collection('spin_codes').orderBy('createdAt', 'desc').limit(50).get().then(function (snap) {
+        if (snap.empty) {
+            list.innerHTML = '<p style="color:var(--light);text-align:center;padding:20px">Hakuna spin codes bado</p>';
+            return;
+        }
+        var html = '';
+        var RESULT_LABELS = {
+            free_gb: '🎁 Alishinda GB Bure',
+            free_gb2: '🎁 Alishinda GB Bure',
+            discount5: '💙 Punguzo 5%',
+            referral: '📢 Referral Bonus',
+            try_again: '🔄 Bahati Nyingine',
+            next_week: '🔁 Jaribu Wiki Ijayo'
+        };
+        snap.forEach(function (doc) {
+            var d = doc.data();
+            var date = d.createdAt ? new Date(d.createdAt.toDate()).toLocaleDateString('sw') : '-';
+            var statusHtml = d.used
+                ? '<span style="background:var(--green);color:#fff;font-size:11px;padding:2px 8px;border-radius:50px">' + (RESULT_LABELS[d.result] || 'Imetumika') + '</span>'
+                : '<span style="background:var(--orange);color:#fff;font-size:11px;padding:2px 8px;border-radius:50px">⏳ Bado</span>';
+
+            html += '<div class="review-item"><div class="review-item-body">';
+            html += '<div class="review-meta"><span class="review-name"><strong>' + d.code + '</strong> — ' + d.phone + '</span>' + statusHtml + '</div>';
+            html += '<div class="review-msg">🗓️ ' + date + '</div>';
+            html += '</div></div>';
+        });
+        list.innerHTML = html;
+    }).catch(function (e) {
+        list.innerHTML = '<p style="color:var(--red)">' + e.message + '</p>';
+    });
 }
 
 // ===== ANALYTICS (Click Tracking) =====

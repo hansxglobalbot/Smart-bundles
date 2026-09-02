@@ -73,10 +73,14 @@
 //         allow write: if true;
 //       }
 //
-//       // BandoManager — kama huitumii kabisa kwenye mfumo wako, FUTA block
-//       // hii yote badala ya kuiacha wazi. Kama unaitumia, ni ADMIN pekee.
+//       // BandoManager — mfumo tofauti unaotumia PIN ya kawaida (siyo
+//       // Firebase Authentication), kwa hiyo request.auth haiwezi kufanya
+//       // kazi hapa bila kuubadilisha mfumo huo pia. Imeachwa wazi kama
+//       // ilivyokuwa awali ili isivunjike — hii inabaki kuwa hatari ya
+//       // usalama inayohitaji kushughulikiwa siku moja (sawa na tatizo
+//       // lililokuwepo kwenye admin.html ya Smart Bundles kabla).
 //       match /bandoManager/{businessId}/{document=**} {
-//         allow read, write: if request.auth != null;
+//         allow read, write: if true;
 //       }
 //
 //       // Maombi ya uwakala — mtu yeyote anaweza kutuma ombi jipya (pending),
@@ -89,8 +93,32 @@
 //                       && request.resource.data.status == 'pending';
 //         allow update, delete: if request.auth != null;
 //       }
-//     }
-//   }
+//
+//       // Gurudumu la Bahati — mipangilio ya jumla (on/off, kuweka idadi
+//       // mpya ya GB) ni ADMIN pekee. Lakini mfumo wa mteja (bila login)
+//       unaruhusiwa KUPUNGUZA idadi ya GB kwa MOJA TU kila mara mtu
+//       anaposhinda — hii ndiyo operesheni halisi ya "spin" ya mteja wa kawaida.
+//       match /wheel_config/{doc} {
+//         allow read: if true;
+//         allow create, delete: if request.auth != null;
+//         allow update: if request.auth != null
+//                       || (
+//                            resource.data.active == true
+//                            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['freeGbRemaining'])
+//                            && request.resource.data.freeGbRemaining == resource.data.freeGbRemaining - 1
+//                          );
+//       }
+//
+//       // Spin codes — ADMIN pekee anayeweza kutengeneza code mpya (baada ya
+//       // kuthibitisha malipo). Mteja anaweza kubadilisha (kutumia) code
+//       // yake MOJA TU, na hawezi kujibadilishia "used:false" arudi nyuma.
+//       match /spin_codes/{code} {
+//         allow read: if true;
+//         allow create: if request.auth != null;
+//         allow update: if resource.data.used == false
+//                       && request.resource.data.used == true;
+//         allow delete: if request.auth != null;
+//       }
 //     }
 //   }
 
