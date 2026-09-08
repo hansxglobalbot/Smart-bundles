@@ -186,7 +186,7 @@
 </div>
 
 <!-- HALOTEL SECTION -->
-<h2>📶 Bando za Halotel (Mwezi 1)</h2>
+<h2>📶 Bando za Halotel (Miezi 3–6)</h2>
 <p class="network-stock halotel-stock">⚠️ Slots zilizobaki (Halotel): <span id="halotelStock"></span></p>
 <p class="warning">⚠️ Bando za Halotel zinawahi kuisha! Order mapema ili usikose.</p>
 <div class="container">
@@ -1068,7 +1068,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div id="wResultIcon" style="font-size:48px">🎉</div>
             <h3 id="wResultTitle" style="margin:10px 0 6px">Hongera!</h3>
             <p id="wResultText" style="color:#6B7280;font-size:14px;margin-bottom:16px"></p>
-            <a href="https://wa.me/255612626715?text=Habari%21%20Nimetumia%20gurudumu%20la%20bahati%20nataka%20kudai%20zawadi%20yangu" target="_blank"
+            <a href="https://wa.me/255612626715?text=Habari%21%20Nimetumia%20gurudumu%20la%20bahati%20nataka%20kudai%20zawadi%20yangu" target="_blank" id="wClaimBtn"
                style="display:inline-block;background:#25D366;color:white;padding:12px 24px;border-radius:50px;font-weight:700;text-decoration:none">
                 💬 Dai Zawadi WhatsApp
             </a>
@@ -1080,22 +1080,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 <script>
-// ===== GURUDUMU LA BAHATI — MODAL JS =====
+// ===== GURUDUMU LA BAHATI — UNIVERSAL CODE SYSTEM =====
 
 var WSEGMENTS = [
-    { key:'free_gb',   label:'🎁 1GB BURE!',        color:'#2563EB', isGb:true  },
-    { key:'try_again', label:'🔄 Jaribu Tena',       color:'#6B7280', isGb:false },
-    { key:'discount5', label:'💙 Punguzo 5%',        color:'#00C896', isGb:false },
-    { key:'free_gb2',  label:'🎁 1GB BURE!',        color:'#FF6B35', isGb:true  },
-    { key:'next_week', label:'🔁 Wiki Ijayo',        color:'#9333EA', isGb:false },
-    { key:'referral',  label:'📢 Referral Bonus',   color:'#FFD166', isGb:false }
+    { key:'free_gb',   label:'🎁 1GB BURE!',    color:'#2563EB', isWin:true  },
+    { key:'try_again', label:'🔄 Jaribu Tena',   color:'#6B7280', isWin:false },
+    { key:'discount5', label:'💙 Punguzo 5%',    color:'#00C896', isWin:true  },
+    { key:'no_luck',   label:'😔 Bahati Nyingine', color:'#9333EA', isWin:false },
+    { key:'next_week', label:'🔁 Wiki Ijayo',    color:'#FF6B35', isWin:false },
+    { key:'referral',  label:'📢 Referral Bonus', color:'#FFD166', isWin:true  }
 ];
 
-var wCurrentCode = null;
 var wRotation = 0;
 var wSpinning = false;
+var wPendingSeg = null;   // segment ambayo tunapaswa kutua juu yake
 
-// Draw wheel on canvas
 function wDrawWheel(rotation) {
     var canvas = document.getElementById('wCanvas');
     if (!canvas) return;
@@ -1107,7 +1106,6 @@ function wDrawWheel(rotation) {
     WSEGMENTS.forEach(function(seg, i) {
         var start = rotation + i * arc;
         var end = start + arc;
-        // Slice
         ctx.beginPath();
         ctx.moveTo(cx, cy);
         ctx.arc(cx, cy, r, start, end);
@@ -1117,7 +1115,6 @@ function wDrawWheel(rotation) {
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2.5;
         ctx.stroke();
-        // Label
         ctx.save();
         ctx.translate(cx, cy);
         ctx.rotate(start + arc / 2);
@@ -1129,7 +1126,6 @@ function wDrawWheel(rotation) {
         ctx.fillText(seg.label, r - 8, 4);
         ctx.restore();
     });
-    // Center circle
     ctx.beginPath();
     ctx.arc(cx, cy, 22, 0, 2 * Math.PI);
     ctx.fillStyle = '#fff';
@@ -1142,6 +1138,15 @@ function wDrawWheel(rotation) {
 function openWheelModal() {
     document.getElementById('wheelModal').classList.add('open');
     document.body.style.overflow = 'hidden';
+    // Reset UI kila mara inapofunguliwa
+    document.getElementById('wGate').style.display = 'block';
+    document.getElementById('wClosed').style.display = 'none';
+    document.getElementById('wStage').style.display = 'none';
+    document.getElementById('wResult').style.display = 'none';
+    document.getElementById('wPhone').value = '';
+    document.getElementById('wCode').value = '';
+    document.getElementById('wGateMsg').style.display = 'none';
+    wRotation = 0;
     wDrawWheel(0);
 }
 
@@ -1165,13 +1170,22 @@ function wShowMsg(msg, color) {
     el.style.display = 'block';
 }
 
+// Normalize phone: chukua tarakimu 9 za mwisho kama unique ID
+function wNormalizePhone(phone) {
+    return phone.replace(/\D/g, '').slice(-9);
+}
+
 function wCheckCode() {
     var phone = document.getElementById('wPhone').value.trim();
     var code = document.getElementById('wCode').value.trim().toUpperCase();
     document.getElementById('wGateMsg').style.display = 'none';
 
-    if (!phone || !code) {
-        wShowMsg('Weka namba ya simu na code kamili.');
+    if (!phone || phone.replace(/\D/g,'').length < 9) {
+        wShowMsg('Weka namba sahihi ya simu.');
+        return;
+    }
+    if (!code) {
+        wShowMsg('Weka code ya gurudumu.');
         return;
     }
 
@@ -1179,92 +1193,107 @@ function wCheckCode() {
     btn.disabled = true;
     btn.textContent = 'Inakagua...';
 
-    // Check if wheel feature is active
+    var phoneId = wNormalizePhone(phone);
+
     db.collection('wheel_config').doc('main').get().then(function(cfgSnap) {
-        var cfg = cfgSnap.exists ? cfgSnap.data() : { active: false };
-        if (!cfg.active) {
+        if (!cfgSnap.exists || !cfgSnap.data().active) {
             document.getElementById('wGate').style.display = 'none';
             document.getElementById('wClosed').style.display = 'block';
-            return;
+            throw { handled: true };
         }
-        // Check spin code
-        db.collection('spin_codes').doc(code).get().then(function(codeSnap) {
-            if (!codeSnap.exists) { wShowMsg('Code hii haipo. Hakikisha umeandika sahihi.'); return; }
-            var d = codeSnap.data();
-            if (d.used) { wShowMsg('Code hii tayari imeshatumika.'); return; }
-            var phoneLast9 = phone.replace(/\D/g,'').slice(-9);
-            var storedLast9 = (d.phone||'').replace(/\D/g,'').slice(-9);
-            if (phoneLast9 !== storedLast9) { wShowMsg('Namba ya simu haiendani na code hii.'); return; }
-            // All good
-            wCurrentCode = code;
-            document.getElementById('wGate').style.display = 'none';
-            document.getElementById('wStage').style.display = 'block';
-            wDrawWheel(0);
-        }).catch(function(e) { wShowMsg('Hitilafu: ' + e.message); });
-    }).catch(function(e) { wShowMsg('Hitilafu: ' + e.message); })
-    .finally(function() {
+        var cfg = cfgSnap.data();
+
+        // Code lazima ilingane na universal code iliyowekwa na admin
+        if (code !== (cfg.universalCode || '').toUpperCase()) {
+            throw new Error('Code si sahihi. Hakikisha umeandika sahihi.');
+        }
+
+        // Angalia kama namba hii tayari imeshatumia (spin_participants)
+        var participantRef = db.collection('spin_participants').doc(phoneId);
+        return db.runTransaction(function(tx) {
+            return tx.get(participantRef).then(function(pSnap) {
+                if (pSnap.exists) {
+                    throw new Error('Namba hii tayari imeshatumia code. Jaribu tena wakati mwingine!');
+                }
+                // Pata counter ya sasa, ongeza moja
+                var counterRef = db.collection('wheel_config').doc('counter');
+                return tx.get(counterRef).then(function(cSnap) {
+                    var currentCount = cSnap.exists ? (cSnap.data().count || 0) : 0;
+                    var myPosition = currentCount + 1;
+
+                    // Amua matokeo kulingana na winningPositions zilizowekwa na Admin
+                    var winPositions = cfg.winningPositions || []; // mfano [1,4,7]
+                    var isWinner = winPositions.indexOf(myPosition) !== -1;
+                    var resultKey = isWinner ? (cfg.winningResult || 'free_gb') : (cfg.losingResult || 'try_again');
+
+                    // Andika counter mpya
+                    tx.set(counterRef, { count: myPosition }, { merge: true });
+
+                    // Sajili mshiriki (anazuia kujaribu tena)
+                    tx.set(participantRef, {
+                        phone: phone,
+                        phoneId: phoneId,
+                        position: myPosition,
+                        result: resultKey,
+                        isWinner: isWinner,
+                        code: code,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    return { position: myPosition, resultKey: resultKey, isWinner: isWinner };
+                });
+            });
+        });
+    }).then(function(outcome) {
+        if (!outcome) return; // closed state ilishughulikiwa juu
+        var seg = WSEGMENTS.filter(function(s){ return s.key === outcome.resultKey; })[0] || WSEGMENTS[1];
+        wPendingSeg = seg;
+        document.getElementById('wGate').style.display = 'none';
+        document.getElementById('wStage').style.display = 'block';
+        wDrawWheel(0);
+    }).catch(function(err) {
+        if (err && err.handled) return;
+        wShowMsg((err && err.message) || 'Hitilafu, jaribu tena.');
+    }).finally(function() {
         btn.disabled = false;
         btn.textContent = '🎉 Fungua Gurudumu';
     });
 }
 
 function wDoSpin() {
-    if (wSpinning || !wCurrentCode) return;
+    if (wSpinning || !wPendingSeg) return;
     wSpinning = true;
     var btn = document.getElementById('wSpinBtn');
     btn.disabled = true;
     btn.textContent = 'Inazunguka...';
-
-    var codeRef = db.collection('spin_codes').doc(wCurrentCode);
-    var cfgRef  = db.collection('wheel_config').doc('main');
-
-    db.runTransaction(function(tx) {
-        return tx.get(codeRef).then(function(cSnap) {
-            if (!cSnap.exists || cSnap.data().used) throw new Error('Code hii tayari imetumika.');
-            return tx.get(cfgRef).then(function(cfgSnap) {
-                var cfg = cfgSnap.exists ? cfgSnap.data() : { active:false, freeGbRemaining:0 };
-                var idx = Math.floor(Math.random() * WSEGMENTS.length);
-                var seg = WSEGMENTS[idx];
-                if (seg.isGb) {
-                    if (!cfg.active || (cfg.freeGbRemaining||0) <= 0) {
-                        idx = 1; seg = WSEGMENTS[1]; // try_again
-                    } else {
-                        tx.update(cfgRef, { freeGbRemaining: cfg.freeGbRemaining - 1 });
-                    }
-                }
-                tx.update(codeRef, {
-                    used: true,
-                    usedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    result: seg.key
-                });
-                return { idx: idx, seg: seg };
-            });
-        });
-    }).then(function(outcome) {
-        wAnimateSpin(outcome.idx, outcome.seg);
-    }).catch(function(err) {
-        alert(err.message || 'Hitilafu, jaribu tena.');
-        btn.disabled = false;
-        btn.textContent = 'ZUNGUSHA! 🎰';
-        wSpinning = false;
-    });
+    wAnimateSpin(wPendingSeg);
 }
 
-function wAnimateSpin(targetIdx, seg) {
+function wAnimateSpin(seg) {
     var n = WSEGMENTS.length;
     var arc = (2 * Math.PI) / n;
-    // Spin 7 full rotations then land on target
-    var extraSpins = 7 * 2 * Math.PI;
-    var targetAngle = -(targetIdx * arc + arc / 2);
-    var totalRotation = wRotation + extraSpins + (targetAngle - (wRotation % (2*Math.PI)));
-    var start = null;
-    var duration = 4500;
-    var startRot = wRotation;
+    var targetIdx = WSEGMENTS.indexOf(seg);
 
-    function ease(t) {
-        // Ease out cubic
-        return 1 - Math.pow(1 - t, 3);
-    }
+    // Pointer iko juu (12 o'clock = -90deg kutoka x-axis chanya, lakini
+    // kwenye canvas yetu tunachora kuanzia 0rad = 3 o'clock, hivyo
+    // "juu" ni -PI/2). Tunataka katikati ya segment i-lande chini ya pointer.
+    var segMidAngle = targetIdx * arc + arc / 2;
+    var pointerAngle = -Math.PI / 2; // juu kabisa
+
+    // rotation inayohitajika ili segment hii iwe chini ya pointer:
+    // (rotation + segMidAngle) mod 2PI == pointerAngle
+    var neededMod = ((pointerAngle - segMidAngle) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI);
+
+    var extraSpins = 7 * 2 * Math.PI; // mizunguko 7 kamili kwa msisimko
+    var startRot = wRotation;
+    var currentMod = ((startRot % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+    var deltaToTarget = ((neededMod - currentMod) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI);
+    var totalRotation = startRot + extraSpins + deltaToTarget;
+
+    var start = null;
+    var duration = 4800;
+
+    function ease(t) { return 1 - Math.pow(1 - t, 3); }
 
     function frame(ts) {
         if (!start) start = ts;
@@ -1276,36 +1305,90 @@ function wAnimateSpin(targetIdx, seg) {
         if (progress < 1) {
             requestAnimationFrame(frame);
         } else {
-            wShowResult(seg);
+            setTimeout(function(){ wShowCelebration(seg); }, 350);
         }
     }
     requestAnimationFrame(frame);
 }
 
-function wShowResult(seg) {
+// ===== POPUP YA PONGEZI (kabla ya result ya mwisho) =====
+function wShowCelebration(seg) {
     document.getElementById('wStage').style.display = 'none';
+
+    var overlay = document.createElement('div');
+    overlay.id = 'wCelebrationOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn 0.3s ease';
+
+    var isWin = seg.isWin;
+    var bigIcon = isWin ? '🎉' : '😔';
+    var bigTitle = isWin ? 'HONGERA SANA!' : 'Bahati Nyingine!';
+    var bigColor = isWin ? '#00C896' : '#6B7280';
+
+    overlay.innerHTML =
+        '<div style="background:white;border-radius:24px;padding:36px 24px;text-align:center;max-width:320px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.3);animation:wCelebPop 0.5s cubic-bezier(0.34,1.56,0.64,1)">' +
+            '<div style="font-size:64px;margin-bottom:8px">' + bigIcon + '</div>' +
+            '<h2 style="margin:0 0 6px;color:' + bigColor + ';font-size:24px;font-family:Poppins,sans-serif">' + bigTitle + '</h2>' +
+            '<p style="font-size:16px;font-weight:700;color:#1A1F36;margin:8px 0 4px">' + seg.label + '</p>' +
+            '<p style="font-size:13px;color:#9CA3AF;margin:0 0 20px">Umezunguka gurudumu la bahati!</p>' +
+            '<button id="wCelebContinue" style="background:linear-gradient(90deg,#2563EB,#00C896);color:white;border:none;padding:13px 32px;border-radius:50px;font-weight:700;font-size:15px;cursor:pointer">Endelea →</button>' +
+        '</div>';
+
+    document.body.appendChild(overlay);
+
+    // Confetti kama ameshinda
+    if (isWin) wLaunchConfetti();
+
+    document.getElementById('wCelebContinue').onclick = function() {
+        overlay.remove();
+        wShowFinalResult(seg);
+    };
+}
+
+function wLaunchConfetti() {
+    var colors = ['#2563EB','#00C896','#FF6B35','#FFD166','#9333EA'];
+    for (var i = 0; i < 40; i++) {
+        var conf = document.createElement('div');
+        var color = colors[Math.floor(Math.random()*colors.length)];
+        var left = Math.random() * 100;
+        var delay = Math.random() * 0.4;
+        var duration = 2 + Math.random() * 1.5;
+        var size = 6 + Math.random() * 6;
+        conf.style.cssText =
+            'position:fixed;top:-20px;left:' + left + 'vw;width:' + size + 'px;height:' + size + 'px;' +
+            'background:' + color + ';z-index:3100;border-radius:' + (Math.random()>0.5?'50%':'2px') + ';' +
+            'animation:wConfettiFall ' + duration + 's ease-in ' + delay + 's forwards;pointer-events:none';
+        document.body.appendChild(conf);
+        (function(el, dur, del) {
+            setTimeout(function(){ el.remove(); }, (dur+del)*1000 + 100);
+        })(conf, duration, delay);
+    }
+}
+
+function wShowFinalResult(seg) {
     var box = document.getElementById('wResult');
     var icon = document.getElementById('wResultIcon');
     var title = document.getElementById('wResultTitle');
     var text = document.getElementById('wResultText');
+    var claimBtn = document.getElementById('wClaimBtn');
 
-    if (seg.isGb) {
-        icon.textContent = '🎁';
-        title.textContent = 'Hongera Sana!';
-        text.textContent = 'Umeshinda 1GB bure! Bonyeza kitufe hapa chini kudai zawadi yako WhatsApp.';
+    if (seg.key === 'free_gb') {
+        icon.textContent = '🎁'; title.textContent = 'Umeshinda 1GB Bure!';
+        text.textContent = 'Bonyeza kitufe hapa chini kudai zawadi yako WhatsApp.';
     } else if (seg.key === 'discount5') {
-        icon.textContent = '💙';
-        title.textContent = 'Umepata Punguzo!';
-        text.textContent = 'Umepata punguzo la 5% kwenye agizo lako lijalo. Tutumie WhatsApp wakati wa kuagiza.';
+        icon.textContent = '💙'; title.textContent = 'Umepata Punguzo 5%!';
+        text.textContent = 'Punguzo litatumika kwenye agizo lako lijalo. Dai sasa!';
     } else if (seg.key === 'referral') {
-        icon.textContent = '📢';
-        title.textContent = 'Referral Bonus!';
-        text.textContent = 'Umepata referral bonus ya ziada. Wasiliana nasi WhatsApp kupata maelezo zaidi.';
+        icon.textContent = '📢'; title.textContent = 'Referral Bonus!';
+        text.textContent = 'Umepata referral bonus ya ziada. Dai sasa upate maelezo.';
     } else {
-        icon.textContent = '🔄';
-        title.textContent = 'Bahati Nyingine!';
-        text.textContent = 'Bahati haikuwa upande wako mara hii — lakini asante kwa kuwa mteja wetu waaminifu!';
+        icon.textContent = seg.key === 'no_luck' ? '😔' : '🔄';
+        title.textContent = 'Bahati Nyingine Wakati Mwingine';
+        text.textContent = 'Asante kwa kujaribu! Endelea kufuatilia ofa zetu za baadaye.';
     }
+
+    // Kitufe cha kudai kinaonekana TU kama ameshinda
+    if (claimBtn) claimBtn.style.display = seg.isWin ? 'inline-block' : 'none';
+
     box.style.display = 'block';
     wSpinning = false;
 }

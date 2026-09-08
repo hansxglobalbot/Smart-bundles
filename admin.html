@@ -529,16 +529,17 @@
 
     <!-- TAB: WHEEL (GURUDUMU) -->
     <div class="tab-content" id="tab-wheel">
+        <div class="alert" id="wheelAlert"></div>
+
         <div class="panel">
             <div class="panel-header">
-                <h3>🎡 Udhibiti wa Gurudumu</h3>
+                <h3>🎡 Udhibiti wa Gurudumu — Universal Code</h3>
             </div>
             <div class="panel-body">
-                <div class="alert" id="wheelAlert"></div>
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #F1F5F9">
                     <div>
                         <strong>Hali ya Gurudumu</strong>
-                        <p style="margin:2px 0 0;font-size:13px;color:var(--light)">Likiwa "Limezimwa," wateja wataona ujumbe "Halipo Sasa" hata kama wana code sahihi.</p>
+                        <p style="margin:2px 0 0;font-size:13px;color:var(--light)">Likiwa "Limezimwa," wateja wataona ujumbe "Halipo Sasa."</p>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="wheelActiveToggle" onchange="saveWheelConfig()">
@@ -547,41 +548,64 @@
                 </div>
 
                 <div style="margin-top:16px">
-                    <label style="font-weight:600;font-size:13.5px;display:block;margin-bottom:6px">GB Bure Zilizobaki Leo</label>
-                    <div style="display:flex;gap:8px">
-                        <input type="number" id="wheelGbRemaining" min="0" style="flex:1;padding:10px;border:1.5px solid #E5E9F2;border-radius:8px">
-                        <input type="text" id="wheelGbSize" placeholder="mfano 1GB" style="width:100px;padding:10px;border:1.5px solid #E5E9F2;border-radius:8px">
-                        <button class="btn btn-green btn-sm" onclick="saveWheelConfig()">Hifadhi</button>
+                    <label style="font-weight:600;font-size:13.5px;display:block;margin-bottom:6px">🔑 Universal Code (kila mtu anatumia hii hii)</label>
+                    <input type="text" id="wheelUniversalCode" placeholder="mfano: BAHATI2025" style="width:100%;padding:12px;border:1.5px solid #E5E9F2;border-radius:8px;text-transform:uppercase;font-weight:700;letter-spacing:1px;box-sizing:border-box">
+                    <p style="margin:6px 0 0;font-size:12.5px;color:var(--light)">Hii ndiyo code utakayotangaza kwa umma — kila namba ya simu inaruhusiwa kuitumia MARA MOJA tu.</p>
+                </div>
+
+                <div style="margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div>
+                        <label style="font-weight:600;font-size:13.5px;display:block;margin-bottom:6px">🏆 Namba za Ushindi (position)</label>
+                        <input type="text" id="wheelWinPositions" placeholder="mfano: 1,4,7,10" style="width:100%;padding:12px;border:1.5px solid #E5E9F2;border-radius:8px;box-sizing:border-box">
+                        <p style="margin:6px 0 0;font-size:12px;color:var(--light)">Mtu wa 1, wa 4, wa 7... (waliowahi kuingiza code) wataashinda. Tenganisha kwa koma.</p>
                     </div>
-                    <p style="margin:6px 0 0;font-size:12.5px;color:var(--light)">Idadi hii inapungua moja kwa moja kila mara mteja anaposhinda GB bure. Weka namba mpya wakati wowote unapotaka kufungua ofa mpya.</p>
+                    <div>
+                        <label style="font-weight:600;font-size:13.5px;display:block;margin-bottom:6px">🎯 Watakaoshinda wapate:</label>
+                        <select id="wheelWinResult" style="width:100%;padding:12px;border:1.5px solid #E5E9F2;border-radius:8px;box-sizing:border-box">
+                            <option value="free_gb">🎁 1GB Bure</option>
+                            <option value="discount5">💙 Punguzo 5%</option>
+                            <option value="referral">📢 Referral Bonus</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-top:12px">
+                    <label style="font-weight:600;font-size:13.5px;display:block;margin-bottom:6px">Wasioshinda wapate:</label>
+                    <select id="wheelLoseResult" style="width:100%;padding:12px;border:1.5px solid #E5E9F2;border-radius:8px;box-sizing:border-box">
+                        <option value="try_again">🔄 Jaribu Tena</option>
+                        <option value="no_luck">😔 Bahati Nyingine</option>
+                        <option value="next_week">🔁 Wiki Ijayo</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-green" style="width:100%;margin-top:16px;padding:13px" onclick="saveWheelConfig()">💾 Hifadhi Mipangilio Yote</button>
+
+                <div style="margin-top:16px;padding:14px;background:#FFF8F0;border-radius:10px;border:1px solid #FFE4CC">
+                    <strong style="font-size:13.5px">📊 Watu Waliojaribu Kufikia Sasa: <span id="wheelCounterDisplay">0</span></strong>
+                    <p style="margin:6px 0 0;font-size:12.5px;color:var(--light)">Ukitaka kuanza mzunguko mpya wa ushindi (mfano kesho), bonyeza reset hapa chini — hii inafuta counter TU, si historia ya washiriki.</p>
+                    <button class="btn btn-red btn-sm" style="margin-top:8px" onclick="resetWheelCounter()">🔄 Reset Counter (Anza Upya)</button>
                 </div>
             </div>
         </div>
 
         <div class="panel">
             <div class="panel-header">
-                <h3>🎟️ Toa Spin Code kwa Mteja</h3>
+                <h3>👥 Washiriki Wote wa Gurudumu</h3>
+                <button class="btn btn-sm" style="background:#F1F5F9" onclick="loadSpinParticipants()">🔄 Onyesha upya</button>
             </div>
             <div class="panel-body">
-                <p style="font-size:13px;color:var(--light);margin-top:0">Tumia hii baada ya kuthibitisha malipo ya mteja — mpe code hii pamoja na ujumbe wako wa kawaida wa "bando limetumwa."</p>
-                <div style="display:flex;gap:8px;flex-wrap:wrap">
-                    <input type="tel" id="newCodePhone" placeholder="Namba ya simu ya mteja" style="flex:1;min-width:180px;padding:10px;border:1.5px solid #E5E9F2;border-radius:8px">
-                    <button class="btn btn-green btn-sm" onclick="generateSpinCode()">Tengeneza Code</button>
+                <div class="stats-row" style="margin-bottom:16px">
+                    <div class="stat-card"><div class="stat-num" style="color:var(--blue)" id="statTotalParticipants">—</div><div class="stat-label">Jumla Washiriki</div></div>
+                    <div class="stat-card"><div class="stat-num" style="color:var(--green)" id="statTotalWinners">—</div><div class="stat-label">Washindi</div></div>
                 </div>
-                <div id="newCodeResult" style="display:none;margin-top:14px;padding:14px;background:#F0FDF9;border-radius:10px">
-                    <div style="font-size:20px;font-weight:800;letter-spacing:2px;text-align:center" id="newCodeText"></div>
-                    <a class="btn btn-sm" style="background:#25D366;color:#fff;display:block;text-align:center;margin-top:10px" id="newCodeWaLink" href="#" target="_blank">💬 Tuma kwa WhatsApp</a>
+                <div style="overflow-x:auto">
+                    <table class="price-table" id="participantsTable">
+                        <thead>
+                            <tr><th>#</th><th>Namba ya Simu</th><th>Matokeo</th><th>Tarehe</th></tr>
+                        </thead>
+                        <tbody id="participantsTableBody"><tr><td colspan="4" class="loading-spinner">⏳ Inapakia...</td></tr></tbody>
+                    </table>
                 </div>
-            </div>
-        </div>
-
-        <div class="panel">
-            <div class="panel-header">
-                <h3>📜 Historia ya Codes</h3>
-                <button class="btn btn-sm" style="background:#F1F5F9" onclick="loadSpinCodes()">🔄 Onyesha upya</button>
-            </div>
-            <div class="panel-body" id="spinCodesList">
-                <div class="loading-spinner">⏳ Inapakia...</div>
             </div>
         </div>
     </div>
@@ -752,7 +776,7 @@ function switchTab(name) {
     if (el) el.classList.add('active');
     if (name === 'referrals') loadReferrals();
     if (name === 'agents') loadAgents();
-    if (name === 'wheel') { loadWheelConfig(); loadSpinCodes(); }
+    if (name === 'wheel') { loadWheelConfig(); loadSpinParticipants(); }
     if (name === 'analytics') loadAnalytics();
 }
 
@@ -764,7 +788,7 @@ function loadAll() {
     loadReviews();
     loadAgents();
     loadWheelConfig();
-    loadSpinCodes();
+    loadSpinParticipants();
 }
 
 function showAlert(id, msg, type) {
@@ -1406,27 +1430,46 @@ function deleteAgent(docId) {
     }).catch(function(e){ showAlert('agentAlert', e.message, 'error'); });
 }
 
-// ===== WHEEL (GURUDUMU LA BAHATI) =====
+// ===== WHEEL (GURUDUMU LA BAHATI) — UNIVERSAL CODE =====
 function loadWheelConfig() {
     db.collection('wheel_config').doc('main').get().then(function (snap) {
-        var cfg = snap.exists ? snap.data() : { active: false, freeGbRemaining: 0, freeGbSize: '1GB' };
+        var cfg = snap.exists ? snap.data() : { active: false, universalCode: '', winningPositions: [], winningResult: 'free_gb', losingResult: 'try_again' };
         document.getElementById('wheelActiveToggle').checked = !!cfg.active;
-        document.getElementById('wheelGbRemaining').value = cfg.freeGbRemaining || 0;
-        document.getElementById('wheelGbSize').value = cfg.freeGbSize || '1GB';
+        document.getElementById('wheelUniversalCode').value = cfg.universalCode || '';
+        document.getElementById('wheelWinPositions').value = (cfg.winningPositions || []).join(',');
+        document.getElementById('wheelWinResult').value = cfg.winningResult || 'free_gb';
+        document.getElementById('wheelLoseResult').value = cfg.losingResult || 'try_again';
     }).catch(function (e) {
         showAlert('wheelAlert', e.message, 'error');
     });
+
+    db.collection('wheel_config').doc('counter').get().then(function(snap) {
+        var count = snap.exists ? (snap.data().count || 0) : 0;
+        document.getElementById('wheelCounterDisplay').textContent = count;
+    }).catch(function(){});
 }
 
 function saveWheelConfig() {
     var active = document.getElementById('wheelActiveToggle').checked;
-    var remaining = parseInt(document.getElementById('wheelGbRemaining').value, 10) || 0;
-    var size = document.getElementById('wheelGbSize').value.trim() || '1GB';
+    var code = document.getElementById('wheelUniversalCode').value.trim().toUpperCase();
+    var positionsStr = document.getElementById('wheelWinPositions').value.trim();
+    var winPositions = positionsStr
+        ? positionsStr.split(',').map(function(s){ return parseInt(s.trim(),10); }).filter(function(n){ return !isNaN(n) && n > 0; })
+        : [];
+    var winResult = document.getElementById('wheelWinResult').value;
+    var loseResult = document.getElementById('wheelLoseResult').value;
+
+    if (active && !code) {
+        showAlert('wheelAlert', 'Weka Universal Code kabla ya kuwasha gurudumu.', 'error');
+        return;
+    }
 
     db.collection('wheel_config').doc('main').set({
         active: active,
-        freeGbRemaining: remaining,
-        freeGbSize: size,
+        universalCode: code,
+        winningPositions: winPositions,
+        winningResult: winResult,
+        losingResult: loseResult,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true }).then(function () {
         showAlert('wheelAlert', 'Mipangilio ya gurudumu imehifadhiwa!', 'success');
@@ -1435,67 +1478,55 @@ function saveWheelConfig() {
     });
 }
 
-function generateSpinCode() {
-    var phone = document.getElementById('newCodePhone').value.trim();
-    if (!phone) { showAlert('wheelAlert', 'Weka namba ya simu ya mteja kwanza.', 'error'); return; }
-
-    var code = 'SB' + Math.random().toString(36).substring(2, 7).toUpperCase();
-
-    db.collection('spin_codes').doc(code).set({
-        code: code,
-        phone: phone,
-        used: false,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(function () {
-        document.getElementById('newCodeResult').style.display = 'block';
-        document.getElementById('newCodeText').textContent = code;
-        var msg = 'Asante kwa ununuzi wako! 🎉 Kama zawadi, una nafasi ya kuzungusha Gurudumu la Bahati letu.\n\n' +
-            'Fungua: [https://rebrand.ly/Smart-bundles]/gurudumu.html\n' +
-            'Namba: ' + phone + '\n' +
-            'Code: ' + code + '\n\nBahati njema! 🎡';
-        var waPhone = phone.replace(/[^0-9]/g, '').replace(/^0/, '255');
-        document.getElementById('newCodeWaLink').href = 'https://wa.me/' + waPhone + '?text=' + encodeURIComponent(msg);
-        document.getElementById('newCodePhone').value = '';
-        loadSpinCodes();
-    }).catch(function (e) {
-        showAlert('wheelAlert', e.message, 'error');
-    });
+function resetWheelCounter() {
+    if (!confirm('Una uhakika? Hii itaanzisha upya kuhesabu kutoka sifuri — mtu atakayeingiza code baada ya hapa atakuwa "namba 1" tena. Historia ya washiriki wa zamani HAITAFUTWA.')) return;
+    db.collection('wheel_config').doc('counter').set({ count: 0 }, { merge: true }).then(function() {
+        showAlert('wheelAlert', 'Counter imerudishwa sifuri. Mzunguko mpya wa ushindi umeanza!', 'success');
+        document.getElementById('wheelCounterDisplay').textContent = '0';
+    }).catch(function(e) { showAlert('wheelAlert', e.message, 'error'); });
 }
 
-function loadSpinCodes() {
-    var list = document.getElementById('spinCodesList');
-    if (!list) return;
-    list.innerHTML = '<div class="loading-spinner">⏳ Inapakia...</div>';
+var RESULT_LABELS = {
+    free_gb: '🎁 Alishinda GB Bure',
+    discount5: '💙 Alipata Punguzo 5%',
+    referral: '📢 Alipata Referral Bonus',
+    try_again: '🔄 Bahati Nyingine',
+    no_luck: '😔 Hakushinda',
+    next_week: '🔁 Ajaribu Wiki Ijayo'
+};
 
-    db.collection('spin_codes').orderBy('createdAt', 'desc').limit(50).get().then(function (snap) {
+function loadSpinParticipants() {
+    var tbody = document.getElementById('participantsTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="4" class="loading-spinner">⏳ Inapakia...</td></tr>';
+
+    db.collection('spin_participants').orderBy('position', 'asc').get().then(function (snap) {
         if (snap.empty) {
-            list.innerHTML = '<p style="color:var(--light);text-align:center;padding:20px">Hakuna spin codes bado</p>';
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--light);padding:20px">Hakuna washiriki bado</td></tr>';
+            document.getElementById('statTotalParticipants').textContent = '0';
+            document.getElementById('statTotalWinners').textContent = '0';
             return;
         }
+
         var html = '';
-        var RESULT_LABELS = {
-            free_gb: '🎁 Alishinda GB Bure',
-            free_gb2: '🎁 Alishinda GB Bure',
-            discount5: '💙 Punguzo 5%',
-            referral: '📢 Referral Bonus',
-            try_again: '🔄 Bahati Nyingine',
-            next_week: '🔁 Jaribu Wiki Ijayo'
-        };
+        var winners = 0;
         snap.forEach(function (doc) {
             var d = doc.data();
-            var date = d.createdAt ? new Date(d.createdAt.toDate()).toLocaleDateString('sw') : '-';
-            var statusHtml = d.used
-                ? '<span style="background:var(--green);color:#fff;font-size:11px;padding:2px 8px;border-radius:50px">' + (RESULT_LABELS[d.result] || 'Imetumika') + '</span>'
-                : '<span style="background:var(--orange);color:#fff;font-size:11px;padding:2px 8px;border-radius:50px">⏳ Bado</span>';
-
-            html += '<div class="review-item"><div class="review-item-body">';
-            html += '<div class="review-meta"><span class="review-name"><strong>' + d.code + '</strong> — ' + d.phone + '</span>' + statusHtml + '</div>';
-            html += '<div class="review-msg">🗓️ ' + date + '</div>';
-            html += '</div></div>';
+            if (d.isWinner) winners++;
+            var date = d.createdAt ? new Date(d.createdAt.toDate()).toLocaleString('sw') : '-';
+            var badgeColor = d.isWinner ? 'var(--green)' : 'var(--light)';
+            html += '<tr>';
+            html += '<td><strong>' + d.position + '</strong></td>';
+            html += '<td>' + d.phone + '</td>';
+            html += '<td><span style="background:' + badgeColor + ';color:white;font-size:11px;padding:3px 10px;border-radius:50px;font-weight:600">' + (RESULT_LABELS[d.result] || d.result) + '</span></td>';
+            html += '<td style="font-size:12px;color:var(--light)">' + date + '</td>';
+            html += '</tr>';
         });
-        list.innerHTML = html;
+        tbody.innerHTML = html;
+        document.getElementById('statTotalParticipants').textContent = snap.size;
+        document.getElementById('statTotalWinners').textContent = winners;
     }).catch(function (e) {
-        list.innerHTML = '<p style="color:var(--red)">' + e.message + '</p>';
+        tbody.innerHTML = '<tr><td colspan="4" style="color:var(--red)">' + e.message + '</td></tr>';
     });
 }
 
