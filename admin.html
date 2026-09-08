@@ -240,6 +240,7 @@
         <button class="tab-btn" onclick="switchTab('agents')">🤝 Wakala</button>
         <button class="tab-btn" onclick="switchTab('wheel')">🎡 Gurudumu</button>
         <button class="tab-btn" onclick="switchTab('analytics')">📈 Analytics</button>
+        <button class="tab-btn" onclick="switchTab('popup')">🎉 Popup Karibu</button>
     </div>
 
     <!-- TAB: OVERVIEW -->
@@ -655,6 +656,64 @@
             </div>
         </div>
     </div>
+
+    <!-- TAB: WELCOME POPUP -->
+    <div class="tab-content" id="tab-popup">
+        <div class="alert" id="popupAlert"></div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <h3>🎉 Popup ya Kwanza — "Karibu Smart Bundles"</h3>
+            </div>
+            <div class="panel-body">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #F1F5F9;margin-bottom:16px">
+                    <div>
+                        <strong>Hali ya Popup</strong>
+                        <p style="margin:2px 0 0;font-size:13px;color:var(--light)">Popup inaonekana mara moja kwa siku kwa kila mtumiaji anayefungua website.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="popupActiveToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div style="background:#F8FAFF;border-radius:12px;padding:16px;margin-bottom:16px">
+                    <strong style="font-size:13px;display:block;margin-bottom:10px">👁️ Onyesho la Haraka</strong>
+                    <div id="popupPreviewBox" style="background:white;border-radius:16px;padding:20px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.08)">
+                        <div id="previewBadge" style="display:inline-block;background:linear-gradient(90deg,#FF6B35,#E11D48);color:white;font-size:10px;font-weight:800;padding:5px 14px;border-radius:50px;margin-bottom:10px">🔥 OFA MAALUM</div>
+                        <div id="previewIcon" style="font-size:40px;margin-bottom:8px">🎡</div>
+                        <div id="previewTitle" style="font-family:Poppins,sans-serif;font-size:17px;font-weight:800;color:#1A1F36;margin-bottom:6px">Karibu Smart Bundles!</div>
+                        <div id="previewText" style="font-size:13px;color:#4B5563;line-height:1.5"></div>
+                    </div>
+                </div>
+
+                <label style="font-weight:600;font-size:13.5px;display:block;margin-bottom:6px">🏷️ Badge (juu kabisa)</label>
+                <input type="text" id="popupBadge" placeholder="mfano: 🔥 OFA MAALUM" style="width:100%;padding:11px;border:1.5px solid #E5E9F2;border-radius:8px;margin-bottom:14px;box-sizing:border-box" oninput="updatePopupPreview()">
+
+                <label style="font-weight:600;font-size:13.5px;display:block;margin-bottom:6px">🎨 Emoji/Icon Kuu</label>
+                <input type="text" id="popupIcon" placeholder="mfano: 🎡" style="width:100%;padding:11px;border:1.5px solid #E5E9F2;border-radius:8px;margin-bottom:14px;box-sizing:border-box" oninput="updatePopupPreview()">
+
+                <label style="font-weight:600;font-size:13.5px;display:block;margin-bottom:6px">📢 Kichwa cha Habari (Title)</label>
+                <input type="text" id="popupTitle" placeholder="mfano: Karibu Smart Bundles!" style="width:100%;padding:11px;border:1.5px solid #E5E9F2;border-radius:8px;margin-bottom:14px;box-sizing:border-box" oninput="updatePopupPreview()">
+
+                <label style="font-weight:600;font-size:13.5px;display:block;margin-bottom:6px">💬 Ujumbe (unaweza kutumia &lt;strong&gt; kwa maneno mazito)</label>
+                <textarea id="popupMessage" rows="3" placeholder="mfano: Nunua bando kuanzia GB 10 upate Spin Code ya bahati!" style="width:100%;padding:11px;border:1.5px solid #E5E9F2;border-radius:8px;margin-bottom:14px;box-sizing:border-box;font-family:inherit;resize:vertical" oninput="updatePopupPreview()"></textarea>
+
+                <label style="font-weight:600;font-size:13.5px;display:block;margin-bottom:6px">🛒 Maandishi ya Kitufe cha Ununuzi</label>
+                <input type="text" id="popupButtonText" placeholder="mfano: 🛒 Nunua Sasa" style="width:100%;padding:11px;border:1.5px solid #E5E9F2;border-radius:8px;margin-bottom:14px;box-sizing:border-box">
+
+                <label style="font-weight:600;font-size:13.5px;display:block;margin-bottom:6px">⏱️ Sekunde Kabla ya Kujifunga Yenyewe</label>
+                <input type="number" id="popupAutoClose" min="0" max="60" placeholder="8" style="width:100%;padding:11px;border:1.5px solid #E5E9F2;border-radius:8px;margin-bottom:6px;box-sizing:border-box">
+                <p style="font-size:12px;color:var(--light);margin:0 0 16px">Weka 0 kama hutaki ijifunge yenyewe kabisa (mtumiaji atafunga mwenyewe tu).</p>
+
+                <button class="btn btn-green" style="width:100%;padding:14px" onclick="saveWelcomePopupConfig()">💾 Hifadhi Mipangilio ya Popup</button>
+
+                <div style="margin-top:14px;padding:12px 14px;background:#EEF4FF;border-radius:10px">
+                    <p style="font-size:12.5px;color:#2563EB;margin:0">💡 <strong>Kidokezo:</strong> Kitufe cha "Nunua Sasa" kinapeleka mtumiaji moja kwa moja kwenye sehemu ya bei za Halotel (GB 10+) kwenye ukurasa.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- FIREBASE -->
@@ -765,7 +824,7 @@ function doLogout() {
 }
 
 // ===== TABS =====
-var TAB_NAMES = ['overview','tigo','halotel','sale','chatbot','reviews','referrals','agents','wheel','analytics'];
+var TAB_NAMES = ['overview','tigo','halotel','sale','chatbot','reviews','referrals','agents','wheel','analytics','popup'];
 
 function switchTab(name) {
     var idx = TAB_NAMES.indexOf(name);
@@ -778,6 +837,7 @@ function switchTab(name) {
     if (name === 'agents') loadAgents();
     if (name === 'wheel') { loadWheelConfig(); loadSpinParticipants(); }
     if (name === 'analytics') loadAnalytics();
+    if (name === 'popup') loadWelcomePopupConfig();
 }
 
 function loadAll() {
@@ -1694,6 +1754,64 @@ function clearAnalyticsData() {
     }).catch(function(e) {
         statusEl.style.color = 'var(--red)';
         statusEl.innerText = '❌ Hitilafu: ' + e.message;
+    });
+}
+
+// ===== WELCOME POPUP (KARIBU) — ADMIN CONTROL =====
+var POPUP_DEFAULTS = {
+    active: true,
+    badge: '🔥 OFA MAALUM',
+    icon: '🎡',
+    title: 'Karibu Smart Bundles!',
+    message: 'Nunua bando kuanzia GB 10 upate <strong>Spin Code</strong> ya bahati — zungusha gurudumu ushinde GB bure, punguzo, na zawadi zingine!',
+    buttonText: '🛒 Nunua Sasa',
+    autoCloseSeconds: 8
+};
+
+function loadWelcomePopupConfig() {
+    db.collection('config').doc('welcome_popup').get().then(function(doc) {
+        var cfg = doc.exists ? doc.data() : POPUP_DEFAULTS;
+        document.getElementById('popupActiveToggle').checked = cfg.active !== false;
+        document.getElementById('popupBadge').value = cfg.badge || POPUP_DEFAULTS.badge;
+        document.getElementById('popupIcon').value = cfg.icon || POPUP_DEFAULTS.icon;
+        document.getElementById('popupTitle').value = cfg.title || POPUP_DEFAULTS.title;
+        document.getElementById('popupMessage').value = cfg.message || POPUP_DEFAULTS.message;
+        document.getElementById('popupButtonText').value = cfg.buttonText || POPUP_DEFAULTS.buttonText;
+        document.getElementById('popupAutoClose').value = (cfg.autoCloseSeconds !== undefined) ? cfg.autoCloseSeconds : POPUP_DEFAULTS.autoCloseSeconds;
+        updatePopupPreview();
+    }).catch(function(e) {
+        showAlert('popupAlert', e.message, 'error');
+    });
+}
+
+function updatePopupPreview() {
+    var badge = document.getElementById('popupBadge').value || POPUP_DEFAULTS.badge;
+    var icon = document.getElementById('popupIcon').value || POPUP_DEFAULTS.icon;
+    var title = document.getElementById('popupTitle').value || POPUP_DEFAULTS.title;
+    var message = document.getElementById('popupMessage').value || POPUP_DEFAULTS.message;
+
+    document.getElementById('previewBadge').textContent = badge;
+    document.getElementById('previewIcon').textContent = icon;
+    document.getElementById('previewTitle').textContent = title;
+    document.getElementById('previewText').innerHTML = message;
+}
+
+function saveWelcomePopupConfig() {
+    var cfg = {
+        active: document.getElementById('popupActiveToggle').checked,
+        badge: document.getElementById('popupBadge').value.trim() || POPUP_DEFAULTS.badge,
+        icon: document.getElementById('popupIcon').value.trim() || POPUP_DEFAULTS.icon,
+        title: document.getElementById('popupTitle').value.trim() || POPUP_DEFAULTS.title,
+        message: document.getElementById('popupMessage').value.trim() || POPUP_DEFAULTS.message,
+        buttonText: document.getElementById('popupButtonText').value.trim() || POPUP_DEFAULTS.buttonText,
+        autoCloseSeconds: parseInt(document.getElementById('popupAutoClose').value, 10) || 0,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    db.collection('config').doc('welcome_popup').set(cfg, { merge: true }).then(function() {
+        showAlert('popupAlert', 'Mipangilio ya popup imehifadhiwa! Itaonekana kwa wateja wapya.', 'success');
+    }).catch(function(e) {
+        showAlert('popupAlert', e.message, 'error');
     });
 }
 </script>

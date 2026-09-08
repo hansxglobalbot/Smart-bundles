@@ -15,6 +15,32 @@
 </head>
 <body>
 
+<!-- ===== WELCOME POPUP (OFA YA KWANZA) ===== -->
+<div class="welcome-popup-overlay" id="welcomePopupOverlay">
+    <div class="welcome-popup-box">
+        <button class="welcome-popup-close" onclick="closeWelcomePopup()">✕</button>
+
+        <div class="welcome-popup-badge" id="wpBadge">🔥 OFA MAALUM</div>
+
+        <div class="welcome-popup-icon" id="wpIcon">🎡</div>
+
+        <h2 class="welcome-popup-title" id="wpTitle">Karibu Smart Bundles!</h2>
+        <p class="welcome-popup-text" id="wpText">
+            Nunua bando kuanzia GB 10 upate <strong>Spin Code</strong> ya bahati —
+            zungusha gurudumu ushinde GB bure, punguzo, na zawadi zingine!
+        </p>
+
+        <div class="welcome-popup-progress-wrap">
+            <div class="welcome-popup-progress-bar" id="wpProgressBar"></div>
+        </div>
+
+        <div class="welcome-popup-actions">
+            <button class="wp-btn-skip" onclick="closeWelcomePopup()">Ruka</button>
+            <button class="wp-btn-buy" id="wpBuyBtn" onclick="wpGoToOffer()">🛒 Nunua Sasa</button>
+        </div>
+    </div>
+</div>
+
     
 <!-- FLASH SALE BANNER -->
 <div class="flash-banner" id="flashBanner">
@@ -1010,7 +1036,73 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 5. Badge ya "Inapendwa Zaidi" kulingana na clicks
     setTimeout(loadPopularBadges, 800);
+
+    // 6. Welcome Popup (Ofa ya Kwanza)
+    initWelcomePopup();
 });
+
+// ===== WELCOME POPUP (OFA YA KWANZA) — inadhibitiwa na Admin =====
+var WP_STORAGE_KEY = 'sb_welcome_popup_last_shown';
+var wpAutoCloseTimer = null;
+
+function initWelcomePopup() {
+    var lastShown = localStorage.getItem(WP_STORAGE_KEY);
+    var today = new Date().toDateString();
+    if (lastShown === today) return;
+
+    db.collection('config').doc('welcome_popup').get().then(function(doc) {
+        var cfg = doc.exists ? doc.data() : null;
+        if (!cfg || !cfg.active) return;
+
+        document.getElementById('wpBadge').textContent = cfg.badge || '🔥 OFA MAALUM';
+        document.getElementById('wpIcon').textContent = cfg.icon || '🎡';
+        document.getElementById('wpTitle').textContent = cfg.title || 'Karibu Smart Bundles!';
+        document.getElementById('wpText').innerHTML = cfg.message || 'Nunua bando kuanzia GB 10 upate <strong>Spin Code</strong> ya bahati!';
+        document.getElementById('wpBuyBtn').textContent = cfg.buttonText || '🛒 Nunua Sasa';
+
+        var autoCloseSeconds = cfg.autoCloseSeconds || 8;
+
+        setTimeout(function() {
+            showWelcomePopup(autoCloseSeconds);
+        }, 1500);
+
+    }).catch(function(err) {
+        console.warn('Welcome popup:', err.message);
+    });
+}
+
+function showWelcomePopup(autoCloseSeconds) {
+    var overlay = document.getElementById('welcomePopupOverlay');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    localStorage.setItem(WP_STORAGE_KEY, new Date().toDateString());
+
+    if (autoCloseSeconds > 0) {
+        var progressBar = document.getElementById('wpProgressBar');
+        progressBar.style.transition = 'width ' + autoCloseSeconds + 's linear';
+        void progressBar.offsetWidth;
+        progressBar.style.width = '0%';
+        wpAutoCloseTimer = setTimeout(function() { closeWelcomePopup(); }, autoCloseSeconds * 1000);
+    } else {
+        var wrap = document.getElementById('wpProgressBar').parentElement;
+        if (wrap) wrap.style.display = 'none';
+    }
+}
+
+function closeWelcomePopup() {
+    var overlay = document.getElementById('welcomePopupOverlay');
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    if (wpAutoCloseTimer) { clearTimeout(wpAutoCloseTimer); wpAutoCloseTimer = null; }
+}
+
+function wpGoToOffer() {
+    closeWelcomePopup();
+    var target = document.getElementById('haloCardsContainer') || document.querySelector('.container');
+    if (target) {
+        setTimeout(function() { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 300);
+    }
+}
 </script>
 
 <!-- ===== GURUDUMU LA BAHATI — FLOATING BUTTON + MODAL ===== -->
