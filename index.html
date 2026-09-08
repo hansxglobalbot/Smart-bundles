@@ -1042,17 +1042,28 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ===== WELCOME POPUP (OFA YA KWANZA) — inadhibitiwa na Admin =====
-var WP_STORAGE_KEY = 'sb_welcome_popup_last_shown';
+var WP_STORAGE_KEY = 'sb_welcome_popup_last_shown_ts';
 var wpAutoCloseTimer = null;
 
-function initWelcomePopup() {
-    var lastShown = localStorage.getItem(WP_STORAGE_KEY);
-    var today = new Date().toDateString();
-    if (lastShown === today) return;
+// Frequency options (masaa): 0 = kila kufungua, 24 = mara moja kwa siku,
+// 168 = mara moja kwa wiki, 999999 = mara moja tu milele
+function wpShouldShow(frequencyHours) {
+    if (frequencyHours === 0) return true; // kila kufungua
 
+    var lastShownTs = parseInt(localStorage.getItem(WP_STORAGE_KEY) || '0', 10);
+    if (!lastShownTs) return true; // hajawahi kuiona
+
+    var hoursSinceLastShown = (Date.now() - lastShownTs) / (1000 * 60 * 60);
+    return hoursSinceLastShown >= frequencyHours;
+}
+
+function initWelcomePopup() {
     db.collection('config').doc('welcome_popup').get().then(function(doc) {
         var cfg = doc.exists ? doc.data() : null;
         if (!cfg || !cfg.active) return;
+
+        var frequencyHours = (cfg.frequencyHours !== undefined) ? cfg.frequencyHours : 24;
+        if (!wpShouldShow(frequencyHours)) return;
 
         document.getElementById('wpBadge').textContent = cfg.badge || '🔥 OFA MAALUM';
         document.getElementById('wpIcon').textContent = cfg.icon || '🎡';
@@ -1060,7 +1071,7 @@ function initWelcomePopup() {
         document.getElementById('wpText').innerHTML = cfg.message || 'Nunua bando kuanzia GB 10 upate <strong>Spin Code</strong> ya bahati!';
         document.getElementById('wpBuyBtn').textContent = cfg.buttonText || '🛒 Nunua Sasa';
 
-        var autoCloseSeconds = cfg.autoCloseSeconds || 8;
+        var autoCloseSeconds = (cfg.autoCloseSeconds !== undefined) ? cfg.autoCloseSeconds : 8;
 
         setTimeout(function() {
             showWelcomePopup(autoCloseSeconds);
@@ -1075,7 +1086,7 @@ function showWelcomePopup(autoCloseSeconds) {
     var overlay = document.getElementById('welcomePopupOverlay');
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
-    localStorage.setItem(WP_STORAGE_KEY, new Date().toDateString());
+    localStorage.setItem(WP_STORAGE_KEY, String(Date.now()));
 
     if (autoCloseSeconds > 0) {
         var progressBar = document.getElementById('wpProgressBar');

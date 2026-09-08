@@ -669,13 +669,25 @@
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #F1F5F9;margin-bottom:16px">
                     <div>
                         <strong>Hali ya Popup</strong>
-                        <p style="margin:2px 0 0;font-size:13px;color:var(--light)">Popup inaonekana mara moja kwa siku kwa kila mtumiaji anayefungua website.</p>
+                        <p style="margin:2px 0 0;font-size:13px;color:var(--light)">Washa au zima popup kabisa.</p>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="popupActiveToggle">
                         <span class="slider"></span>
                     </label>
                 </div>
+
+                <label style="font-weight:600;font-size:13.5px;display:block;margin-bottom:6px">🔁 Mzunguko wa Kuonekana</label>
+                <select id="popupFrequency" style="width:100%;padding:12px;border:1.5px solid #E5E9F2;border-radius:8px;margin-bottom:6px;box-sizing:border-box;font-size:14px">
+                    <option value="0">Kila mara mtu anapofungua website</option>
+                    <option value="1">Mara moja kila saa</option>
+                    <option value="6">Mara moja kila masaa 6</option>
+                    <option value="24">Mara moja kwa siku (chaguo la kawaida)</option>
+                    <option value="72">Mara moja kila siku 3</option>
+                    <option value="168">Mara moja kwa wiki</option>
+                    <option value="999999">Mara moja tu (hadi nitakapobadilisha)</option>
+                </select>
+                <p style="font-size:12px;color:var(--light);margin:0 0 16px">Hii inadhibiti ni mara ngapi mtumiaji yule yule (kwenye kifaa kile kile) ataona popup hii.</p>
 
                 <div style="background:#F8FAFF;border-radius:12px;padding:16px;margin-bottom:16px">
                     <strong style="font-size:13px;display:block;margin-bottom:10px">👁️ Onyesho la Haraka</strong>
@@ -1765,7 +1777,8 @@ var POPUP_DEFAULTS = {
     title: 'Karibu Smart Bundles!',
     message: 'Nunua bando kuanzia GB 10 upate <strong>Spin Code</strong> ya bahati — zungusha gurudumu ushinde GB bure, punguzo, na zawadi zingine!',
     buttonText: '🛒 Nunua Sasa',
-    autoCloseSeconds: 8
+    autoCloseSeconds: 8,
+    frequencyHours: 24
 };
 
 function loadWelcomePopupConfig() {
@@ -1778,6 +1791,7 @@ function loadWelcomePopupConfig() {
         document.getElementById('popupMessage').value = cfg.message || POPUP_DEFAULTS.message;
         document.getElementById('popupButtonText').value = cfg.buttonText || POPUP_DEFAULTS.buttonText;
         document.getElementById('popupAutoClose').value = (cfg.autoCloseSeconds !== undefined) ? cfg.autoCloseSeconds : POPUP_DEFAULTS.autoCloseSeconds;
+        document.getElementById('popupFrequency').value = (cfg.frequencyHours !== undefined) ? cfg.frequencyHours : POPUP_DEFAULTS.frequencyHours;
         updatePopupPreview();
     }).catch(function(e) {
         showAlert('popupAlert', e.message, 'error');
@@ -1805,6 +1819,7 @@ function saveWelcomePopupConfig() {
         message: document.getElementById('popupMessage').value.trim() || POPUP_DEFAULTS.message,
         buttonText: document.getElementById('popupButtonText').value.trim() || POPUP_DEFAULTS.buttonText,
         autoCloseSeconds: parseInt(document.getElementById('popupAutoClose').value, 10) || 0,
+        frequencyHours: parseInt(document.getElementById('popupFrequency').value, 10),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
